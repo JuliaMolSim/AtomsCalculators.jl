@@ -6,11 +6,11 @@ DocMeta.setdocmeta!(AtomsCalculators, :DocTestSetup, :(using AtomsCalculators); 
 makedocs(;
     modules=[AtomsCalculators],
     authors="JuliaMolSim contributors",
-    repo="https://github.com/teemu/AtomsCalculators.jl/blob/{commit}{path}#{line}",
+    repo="https://github.com/JuliaMolSim/AtomsCalculators.jl/blob/{commit}{path}#{line}",
     sitename="AtomsCalculators.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://teemu.github.io/AtomsCalculators.jl",
+        canonical="https://JuliaMolSim.github.io/AtomsCalculators.jl",
         edit_link="master",
         assets=String[],
     ),
@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/teemu/AtomsCalculators.jl",
+    repo="github.com/JuliaMolSim/AtomsCalculators.jl",
     devbranch="master",
 )
