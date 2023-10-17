@@ -175,6 +175,8 @@ for the output and checks that random keywords are accepted in input.
 
 `force_eltype` is given for `forces!` interface testing.
 `kwargs` can be passed to the `calculator` for tuning during testing.
+
+The calculator is expected to work without kwargs.
 """
 function test_forces(sys, calculator; force_eltype=default_force_eltype, kwargs...)
     @testset "Test forces for $(typeof(calculator))" begin
@@ -188,8 +190,9 @@ function test_forces(sys, calculator; force_eltype=default_force_eltype, kwargs.
         @test eltype(f_matrix) <: Number
         @test size(f_matrix) == (3, length(f))
         @test all( AtomsCalculators.forces(sys, calculator; dummy_kword659234=1, kwargs...) .≈ f )
-        @test dimension(f[1][1]) == dimension(u"N")
-        @test length(f[1]) == (length ∘ position)(sys,1)
+        f_cpu_array = Array(f)  # Allow GPU output
+        @test dimension(f_cpu_array[1][1]) == dimension(u"N")
+        @test length(f_cpu_array[1]) == (length ∘ position)(sys,1)
         f_nonallocating = zeros(force_eltype, length(sys))
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; kwargs...)
         @test all( f_nonallocating .≈ f  )
@@ -210,6 +213,8 @@ own calculator. Test function will then call the interface and performs checks
 for the output and checks that random keywords are accepted in input. 
 
 `kwargs` can be passed to the `calculator` for tuning during testing.
+
+The calculator is expected to work without kwargs.
 """
 function test_potential_energy(sys, calculator; kwargs...)
     @testset "Test potential_energy for $(typeof(calculator))" begin
@@ -233,13 +238,16 @@ own calculator. Test function will then call the interface and performs checks
 for the output and checks that random keywords are accepted in input. 
 
 `kwargs` can be passed to the `calculator` for tuning during testing.
+
+The calculator is expected to work without kwargs.
 """
 function test_virial(sys, calculator; kwargs...)
     @testset "Test virial for $(typeof(calculator))" begin
         v = AtomsCalculators.virial(sys, calculator; kwargs...)
         @test typeof(v) <: AbstractMatrix
         @test eltype(v) <: Number
-        @test dimension(v[1,1]) == dimension(u"J*m")
+        v_cpu_array = Array(v) # Allow GPU arrays
+        @test dimension(v_cpu_array[1,1]) == dimension(u"J*m")
         l = (length ∘ position)(sys,1) 
         @test size(v) == (l,l) # allow different dimensions than 3
         v2 = AtomsCalculators.virial(sys, calculator; dummy_kword6594254=1, kwargs...)
