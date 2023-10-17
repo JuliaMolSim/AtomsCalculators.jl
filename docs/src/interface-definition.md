@@ -27,7 +27,7 @@ Outputs for the functions need to have following properties
 
 ## Example implementations
 
-Example potential_energy implementation
+Example `potential_energy` implementation
 
 ```julia
 function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
@@ -39,7 +39,7 @@ function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...
 end
 ```
 
-Example virial implementation
+Example `virial` implementation
 
 ```julia
 function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
@@ -74,7 +74,7 @@ end
 
 This creates both `forces` and `forces!`. `AtomsCalculators.default_force_eltype` is a type that can be used to allocate force data. You can also allocate for some other type.
 
-!!! note "For type definition under @generate_complement macro"
+!!! note "Type definition under @generate_complement macro"
     You need to use explicit definition of type when using
     `@generate_complement` macro. `Main.MyType` is fine `MyType` is not!
 
