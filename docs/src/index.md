@@ -6,7 +6,7 @@ CurrentModule = AtomsCalculators
 
 Documentation for [AtomsCalculators](https://github.com/JuliaMolSim/AtomsCalculators.jl).
 
-This a calculation interface for [AtomsBase]() meant to extend the interface for calculators.
+This a calculation interface for [AtomsBase](https://github.com/JuliaMolSim/AtomsBase.jl) meant to extend the interface for calculators.
 At this moment this is a preliminary version with molecular dynamics and various geometry optimizations
 in mid. In the future there can be more functionality too.
 
@@ -14,7 +14,7 @@ in mid. In the future there can be more functionality too.
 
 There are three main targets for calculations `potential_energy`, `forces` and [virial](https://en.wikipedia.org/wiki/Virial_stress). 
 
-Individual calls are implemented by overloading `AtomsBase` functions
+Individual calls are implemented by overloading `AtomsCalculators` functions
 
 - `AtomsCalculators.potential_energy` for potential energy calculation
 - `AtomsCalculators.forces` for allocating force calculation and/or...
@@ -75,7 +75,7 @@ Example
 struct MyType
 end
 
-AtomsBase.@generate_complement function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_complement function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -84,7 +84,7 @@ AtomsBase.@generate_complement function AtomsCalculators.forces(system, calculat
 end
 ```
 
-This creates both `forces` and `forces!`. `AtomsBase.default_force_eltype` is a type that can be used to allocate force data. You can also allocate for some other type.
+This creates both `forces` and `forces!`. `AtomsCalculators.default_force_eltype` is a type that can be used to allocate force data. You can also allocate for some other type.
 
 !!! note "For type definition under @generate_complement macro"
     You need to use explicit definition of type when using
@@ -98,7 +98,7 @@ Alternatively the definition could have been done with
 struct MyOtherType
 end
 
-AtomsBase.@generate_complement function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+AtomsCalculators.@generate_complement function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
     @assert length(f) == length(system)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
