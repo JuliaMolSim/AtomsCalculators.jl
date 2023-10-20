@@ -22,7 +22,7 @@ Outputs for the functions need to have following properties
 
 - Energy is a subtype of `Number` that has a unit with dimensions of energy (mass * length^2 / time^2)
 - Force output is a subtype of `AbstractVector` with element type also a subtype of AbstractVector (length 3 in 3D) and unit with dimensions of force (mass * length / time^2). With additional property that it can be reinterpret as a matrix
-- Virial is a square matrix (3x3 in 3D) that has units of energy times length
+- Virial is a square matrix (3x3 in 3D) that has units of force times length or energy
 
 
 ## Example implementations
@@ -47,7 +47,7 @@ function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
     # or give extra information like pairlist
 
     # add your own definition here
-    return zeros(3,3) * u"eV*Å"
+    return zeros(3,3) * u"eV"
 end
 ```
 
@@ -68,11 +68,11 @@ AtomsCalculators.@generate_complement function AtomsCalculators.forces(system, c
     # or give extra information like pairlist
 
     # add your own definition
-    return zeros(AtomsCalculators.default_force_eltype, length(system))
+    return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system))
 end
 ```
 
-This creates both `forces` and `forces!`. `AtomsCalculators.default_force_eltype` is a type that can be used to allocate force data. You can also allocate for some other type.
+This creates both `forces` and `forces!`. `AtomsCalculators.promote_force_type(system, calculator)` creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload `promote_force_type` for your force type, so that users can preallocate data for the force calculator. 
 
 !!! note "Type definition under @generate_complement macro"
     You need to use explicit definition of type when using
@@ -93,7 +93,7 @@ AtomsCalculators.@generate_complement function AtomsCalculators.forces!(f::Abstr
 
     # add your own definition
     for i in eachindex(f)
-        f[i] = zero(AtomsCalculators.default_force_eltype)
+        f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
     end
 
     return f
@@ -136,7 +136,7 @@ Output for the combination methods is defined to have keys `:energy`, `:forces` 
 - `output[:forces]` for forces
 - `output[:virial]` for viral
 
-The type of the output can be [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple), as was in the example above, [Dictionary](https://docs.julialang.org/en/v1/base/collections/#Dictionaries) or any structure that has the keys implemented. The reason for this is that this allows everyone to implement the performance functions without being restricted to certain output type, and to allow using `haskey` to check the output.
+The type of the output can be [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple), as was in the example above, or any structure that has the keys implemented and also supports splatting. The reason for this is that this allows everyone to implement the performance functions without being restricted to certain output type, and to allow using `haskey` to check the output.
 
 ## Testing Function Calls
 

@@ -25,7 +25,7 @@ using Unitful
         # or give extra information like pairlist
     
         # add your own definition here
-        return zeros(3,3) * u"eV*Å"
+        return zeros(3,3) * u"eV"
     end
     
     
@@ -34,7 +34,7 @@ using Unitful
         # or give extra information like pairlist
     
         # add your own definition
-        return zeros(AtomsCalculators.default_force_eltype, length(system)) 
+        return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)) 
     end
     
     AtomsCalculators.@generate_complement function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
@@ -44,7 +44,7 @@ using Unitful
     
         # add your own definition
         for i in eachindex(f)
-            f[i] = zero(AtomsCalculators.default_force_eltype)
+            f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
         end
     
         return f

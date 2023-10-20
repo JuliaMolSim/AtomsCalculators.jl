@@ -1,4 +1,3 @@
-const default_force_eltype = SVector(1., 1., 1.) * u"eV/Å" |> typeof
 
 function potential_energy end 
 
@@ -8,6 +7,7 @@ function forces! end
 
 function virial end 
 
+promote_force_type(::Any, ::Any) = SVector(1., 1., 1.) * u"eV/Å" |> typeof
 
 ## Define combinations from basic calls
 
@@ -127,7 +127,7 @@ macro generate_complement(expr)
         name = oldname[begin:end-1] 
         q = Meta.parse(
             "function $name(system, calculator::$calc_type; kwargs...)
-                final_data = zeros( default_force_eltype, length(system) )
+                final_data = zeros( AtomsCalculators.promote_force_type(system, calculator), length(system) )
                 $oldname(final_data, system, calculator; kwargs...)
                 return final_data
             end"
@@ -169,8 +169,12 @@ for the output and checks that random keywords are accepted in input.
 
 The calculator is expected to work without kwargs.
 """
-function test_forces(sys, calculator; force_eltype=default_force_eltype, kwargs...)
+function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
     @testset "Test forces for $(typeof(calculator))" begin
+        ftype = something(
+            force_eltype, 
+            AtomsCalculators.promote_force_type(sys, calculator)
+        )
         f = AtomsCalculators.forces(sys, calculator; kwargs...)
         @test typeof(f) <: AbstractVector
         @test eltype(f) <: AbstractVector
@@ -184,7 +188,7 @@ function test_forces(sys, calculator; force_eltype=default_force_eltype, kwargs.
         f_cpu_array = Array(f)  # Allow GPU output
         @test dimension(f_cpu_array[1][1]) == dimension(u"N")
         @test length(f_cpu_array[1]) == (length ∘ position)(sys,1)
-        f_nonallocating = zeros(force_eltype, length(sys))
+        f_nonallocating = zeros(ftype, length(sys))
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; kwargs...)
         @test all( f_nonallocating .≈ f  )
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; dummy_kword659254=1, kwargs...)
@@ -238,7 +242,7 @@ function test_virial(sys, calculator; kwargs...)
         @test typeof(v) <: AbstractMatrix
         @test eltype(v) <: Number
         v_cpu_array = Array(v) # Allow GPU arrays
-        @test dimension(v_cpu_array[1,1]) == dimension(u"J*m")
+        @test dimension(v_cpu_array[1,1]) == dimension(u"J")
         l = (length ∘ position)(sys,1) 
         @test size(v) == (l,l) # allow different dimensions than 3
         v2 = AtomsCalculators.virial(sys, calculator; dummy_kword6594254=1, kwargs...)
