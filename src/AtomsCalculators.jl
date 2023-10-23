@@ -7,6 +7,7 @@ using Test
 using Unitful
 
 include("calculator_definitions.jl")
+include("submodules/AtomsCalculatorsTesting.jl")
 
 
 end

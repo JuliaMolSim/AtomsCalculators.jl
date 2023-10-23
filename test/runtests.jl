@@ -3,6 +3,7 @@ using AtomsCalculators
 using Test
 using Unitful
 
+using AtomsCalculators.AtomsCalculatorsTesting
 
 @testset "AtomsCalculators.jl" begin
     # Write your tests here.
@@ -55,10 +56,10 @@ using Unitful
     :H => [0, 0, 1.]u"Å"
     ])
 
-    AtomsCalculators.test_potential_energy(hydrogen, MyType())
-    AtomsCalculators.test_forces(hydrogen, MyType())
-    AtomsCalculators.test_virial(hydrogen, MyType())
-    AtomsCalculators.test_forces(hydrogen, MyOtherType())
+    test_potential_energy(hydrogen, MyType())
+    test_forces(hydrogen, MyType())
+    test_virial(hydrogen, MyType())
+    test_forces(hydrogen, MyOtherType())
 
     efv = AtomsCalculators.energy_forces_virial(hydrogen, MyType())
     @test haskey(efv, :energy)
