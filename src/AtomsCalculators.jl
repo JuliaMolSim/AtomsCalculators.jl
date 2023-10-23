@@ -6,7 +6,7 @@ using StaticArrays
 using Test
 using Unitful
 
-include("calculator_definitions.jl")
+include("interface.jl")
 include("submodules/AtomsCalculatorsTesting.jl")
 
 
