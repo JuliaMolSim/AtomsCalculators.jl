@@ -49,6 +49,7 @@ function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; dummy_kword659254=1, kwargs...)
         @test all( f_nonallocating .≈ f  )
         fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
+        @test isa(fc, NamedTuple)
         @test haskey(fc, :forces)
         @test all( f .≈ fc[:forces] )
     end
@@ -77,6 +78,7 @@ function test_potential_energy(sys, calculator; kwargs...)
         e2 = AtomsCalculators.potential_energy(sys, calculator; dummy_kword6594254=1, kwargs...)
         @test e ≈ e2
         ec = AtomsCalculators.calculate(AtomsCalculators.Energy(), sys, calculator; kwargs...)
+        @test isa(ec, NamedTuple)
         @test haskey(ec, :energy)
         @test e ≈ ec[:energy]
     end
@@ -109,6 +111,7 @@ function test_virial(sys, calculator; kwargs...)
         v2 = AtomsCalculators.virial(sys, calculator; dummy_kword6594254=1, kwargs...)
         @test all( v .≈ v2 )
         vc = AtomsCalculators.calculate(AtomsCalculators.Virial(), sys, calculator; kwargs...)
+        @test isa(vc, NamedTuple)
         @test haskey(vc, :virial)
         @test all( v .≈ vc[:virial] )
     end
