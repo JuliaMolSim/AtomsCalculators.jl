@@ -38,7 +38,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # or give extra information like pairlist
     
         # add your own definition
-        return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)) 
+        return AtomsCalculators.zero_forces(system, calculator)
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
@@ -64,7 +64,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # or give extra information like pairlist
     
         # add your own definition here
-        return 0.0u"eV"
+        return ( energy = 0.0u"eV", )
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
@@ -77,7 +77,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # or give extra information like pairlist
     
         # add your own definition here
-        return zeros(3,3) * u"eV"
+        return ( virial = zeros(3,3) * u"eV", )
     end
     
     
@@ -91,7 +91,8 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # or give extra information like pairlist
     
         # add your own definition
-        return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)) 
+        f = AtomsCalculators.zero_forces(system, calculator)
+        return ( forces = f, )
     end
 
     hydrogen = isolated_system([

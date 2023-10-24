@@ -30,12 +30,18 @@ Each of the individual calls have two common inputs: `AtomsBase.AbstractSystem` 
 `calculate`:
 
 - First input is either `Energy()`, `Forces()` or `Virial()`
+- Second is `AtomsBase.AbstractSystem` compatible structure
+- Third is `calculator` structure
+- Method has to accept keyword arguments (they can be ignored)
+
+## Output
 
 Outputs for the functions need to have following properties
 
 - Energy is a subtype of `Number` that has a unit with dimensions of energy (mass * length^2 / time^2)
 - Force output is a subtype of `AbstractVector` with element type also a subtype of AbstractVector (length 3 in 3D) and unit with dimensions of force (mass * length / time^2). With additional property that it can be reinterpret as a matrix
 - Virial is a square matrix (3x3 in 3D) that has units of force times length or energy
+- Calculate methods return a [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple) that uses keys `:energy`, `:forces` and `:virial` to identify the results, which have the types defined above
 
 
 ## Implementing the interface
@@ -78,7 +84,7 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::Atoms
     # or give extra information like pairlist
 
     # add your own definition here
-    return 0.0u"eV"
+    return ( energy = 0.0u"eV, )
 end
 ```
 
@@ -102,7 +108,7 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::Atoms
     # or give extra information like pairlist
 
     # add your own definition here
-    return zeros(3,3) * u"eV"
+    return ( virial = zeros(3,3) * u"eV", )
 end
 ```
 
@@ -116,11 +122,15 @@ AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, ca
     # or give extra information like pairlist
 
     # add your own definition
-    return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system))
+    return AtomsCalculators.zero_forces(system, calculator)
 end
 ```
 
-This creates both `forces` and `forces!` and `calculate` command with `Forces()` support. `AtomsCalculators.promote_force_type(system, calculator)` creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload `promote_force_type` for your force type, so that users can preallocate data for the force calculator. 
+This creates both `forces` and `forces!` and `calculate` command with `Forces()` support.
+
+`AtomsCalculators.zero_forces(system, calculator)` is a function that creates zero forces for a given calculator and system combo. You can use this function to tune your force output.
+
+Same way `AtomsCalculators.promote_force_type(system, calculator)` creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload `promote_force_type` for your force type, this is automatically used by `zero_forces` command to change the element type. If you wan to change array type overload `zero_forces` for your calculator.
 
 Alternatively the definition could have been done with
 
@@ -130,10 +140,11 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::Atoms
     # or give extra information like pairlist
 
     # add your own definition
-    return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system))
+    return ( forces = zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)), )
 end
 ```
 
+or with non-allocating forces
 
 ```julia
 struct MyOtherType

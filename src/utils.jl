@@ -152,7 +152,8 @@ end
 function generate_calculator_energy(calc_type)
     q = quote
         function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::$calc_type; kwargs...)
-            return AtomsCalculators.potential_energy(system, calculator; kwargs...)
+            e = AtomsCalculators.potential_energy(system, calculator; kwargs...)
+            return ( energy = e, )
         end
     end
     return q
@@ -161,7 +162,8 @@ end
 function generate_calculator_forces(calc_type)
     q = quote
         function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::$calc_type; kwargs...)
-            return AtomsCalculators.forces(system, calculator; kwargs...)
+            f = AtomsCalculators.forces(system, calculator; kwargs...)
+            return ( forces = f, )
         end
     end
     return q
@@ -170,7 +172,8 @@ end
 function generate_calculator_virial(calc_type)
     q = quote 
         function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::$calc_type; kwargs...)
-            return AtomsCalculators.virial(system, calculator; kwargs...)
+            v = AtomsCalculators.virial(system, calculator; kwargs...)
+            return ( virial = v, )
         end
     end
     return q
@@ -180,7 +183,8 @@ end
 function generate_potential_energy(calc_type)
     q = quote 
         function AtomsCalculators.potential_energy(system, calculator::$calc_type; kwargs...)
-            return AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator; kwargs...)
+            e = AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator; kwargs...)
+            return e[:energy]
         end
     end
     return q
@@ -189,7 +193,8 @@ end
 function generate_virial(calc_type)
     q = quote
         function AtomsCalculators.virial(system, calculator::$calc_type; kwargs...)
-            return AtomsCalculators.calculate(AtomsCalculators.Virial(), system, calculator; kwargs...)
+            v = AtomsCalculators.calculate(AtomsCalculators.Virial(), system, calculator; kwargs...)
+            return v[:virial]
         end
     end
     return q
@@ -198,8 +203,7 @@ end
 function generate_allocating_forces(calc_type)
     q = quote
         function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
-            t = promote_force_type(system, calculator)
-            F = zeros(t, length(system)) 
+            F = AtomsCalculators.zero_forces(system, calculator) 
             AtomsCalculators.forces!(F, system, calculator; kwargs...)
             return F
         end
@@ -221,7 +225,8 @@ end
 function generate_forces_from_calculator(calc_type)
     q1 = quote 
         function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
-            return AtomsCalculators.calculate(AtomsCalculators.Forces(), system, calculator; kwargs...)
+            f = AtomsCalculators.calculate(AtomsCalculators.Forces(), system, calculator; kwargs...)
+            return f[:forces]
         end
     end
     q2 = generate_nonallocating_forces(calc_type)
