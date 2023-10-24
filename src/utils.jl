@@ -1,7 +1,7 @@
 ## Macros to help implement calculators
 
 
-@doc """
+"""
     @generate_interface
 
 Generate complementary function for given function expression.

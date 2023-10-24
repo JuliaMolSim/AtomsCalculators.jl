@@ -50,6 +50,8 @@ You can either implement both of the calls e.g. for energy
 Example `potential_energy` implementation
 
 ```julia
+using AtomsCalculators
+using Unitful
 struct MyType
 end
 
@@ -71,7 +73,7 @@ end
 Completely equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy(), system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::Main.MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -95,7 +97,7 @@ end
 Equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial(), system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::Main.MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -106,13 +108,9 @@ end
 
 ### Implementing forces call
 
-
-
-Example
+Basic example
 
 ```julia
-
-
 AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
@@ -125,6 +123,17 @@ end
 This creates both `forces` and `forces!` and `calculate` command with `Forces()` support. `AtomsCalculators.promote_force_type(system, calculator)` creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload `promote_force_type` for your force type, so that users can preallocate data for the force calculator. 
 
 Alternatively the definition could have been done with
+
+```julia
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::Main.MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition
+    return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system))
+end
+```
+
 
 ```julia
 struct MyOtherType
@@ -186,26 +195,33 @@ The type of the output can be [NamedTuple](https://docs.julialang.org/en/v1/base
 
 We have implemented function calls to help you testing the API. There is one call for each type of calls 
 
-- `AtomsCalculators.test_potential_energy` to test potential_energy call
-- `AtomsCalculators.test_forces` to test both allocating and non-allocating force calls
-- `AtomsCalculators.test_virial` to test virial call
+- `test_potential_energy` to test potential_energy call
+- `test_forces` to test both allocating and non-allocating force calls
+- `test_virial` to test virial call
 
-These functions take the same (non-allocating) input than the API calls.
+To get these access to these functions you need to call
+
+```julia
+using AtomsCalculators.AtomsCalculatorsTesting
+```
 
 To test our example potential `MyType` we can do
 
 ```julia
+using AtomsBase
+using AtomsCalculators.AtomsCalculatorsTesting
+
 hydrogen = isolated_system([
-    :H => [0, 0, 1.]u"bohr",
-    :H => [0, 0, 3.]u"bohr"
+    :H => [0, 0, 0.]u"Å",
+    :H => [0, 0, 1.]u"Å"
 ])
 
-AtomsCalculators.test_potential_energy(hydrogen, MyType())
-AtomsCalculators.test_forces(hydrogen, MyType())
-AtomsCalculators.test_virial(hydrogen, MyType())
+test_potential_energy(hydrogen, MyType())
+test_forces(hydrogen, MyType())
+test_virial(hydrogen, MyType())
 
-AtomsCalculators.test_forces(hydrogen, MyOtherType()) # this works
-AtomsCalculators.test_virial(hydrogen, MyOtherType()) # this will fail
+test_forces(hydrogen, MyOtherType()) # this works
+test_virial(hydrogen, MyOtherType()) # this will fail
 ```
 
 *It is recommended that you use the test functions to test that your implementation supports the API fully!*
