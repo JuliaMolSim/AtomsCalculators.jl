@@ -13,7 +13,10 @@ using AtomsCalculators.AtomsCalculatorsTesting
     struct MyOtherType
     end
 
-    function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
+    struct MyTypeC
+    end
+
+    AtomsCalculators.@generate_rest function AtomsCalculators.potential_energy(system, calculator::Main.MyType; kwargs...)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
@@ -21,7 +24,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return 0.0u"eV"
     end
     
-    function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
+    AtomsCalculators.@generate_rest function AtomsCalculators.virial(system, calculator::Main.MyType; kwargs...)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
@@ -30,7 +33,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
     end
     
     
-    AtomsCalculators.@generate_complement function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+    AtomsCalculators.@generate_rest function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
@@ -38,7 +41,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)) 
     end
     
-    AtomsCalculators.@generate_complement function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+    AtomsCalculators.@generate_rest function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
         @assert length(f) == length(system)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
@@ -51,6 +54,46 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return f
     end
 
+    AtomsCalculators.@generate_rest function AtomsCalculators.calculate(
+        ::AtomsCalculators.Energy, 
+        system, 
+        calculator::Main.MyTypeC; 
+        kwargs...
+    )
+        # we can ignore kwargs... or use them to tune the calculation
+        # or give extra information like pairlist
+    
+        # add your own definition here
+        return 0.0u"eV"
+    end
+    
+    AtomsCalculators.@generate_rest function AtomsCalculators.calculate(
+        ::AtomsCalculators.Virial, 
+        system, 
+        calculator::Main.MyTypeC; 
+        kwargs...
+    )
+        # we can ignore kwargs... or use them to tune the calculation
+        # or give extra information like pairlist
+    
+        # add your own definition here
+        return zeros(3,3) * u"eV"
+    end
+    
+    
+    AtomsCalculators.@generate_rest function AtomsCalculators.calculate(
+        ::AtomsCalculators.Forces, 
+        system, 
+        calculator::Main.MyTypeC; 
+        kwargs...
+    )
+        # we can ignore kwargs... or use them to tune the calculation
+        # or give extra information like pairlist
+    
+        # add your own definition
+        return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)) 
+    end
+
     hydrogen = isolated_system([
     :H => [0, 0, 0.]u"Å",
     :H => [0, 0, 1.]u"Å"
@@ -60,6 +103,10 @@ using AtomsCalculators.AtomsCalculatorsTesting
     test_forces(hydrogen, MyType())
     test_virial(hydrogen, MyType())
     test_forces(hydrogen, MyOtherType())
+    
+    test_potential_energy(hydrogen, MyTypeC())
+    test_forces(hydrogen, MyTypeC())
+    test_virial(hydrogen, MyTypeC())
 
     efv = AtomsCalculators.energy_forces_virial(hydrogen, MyType())
     @test haskey(efv, :energy)

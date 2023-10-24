@@ -48,6 +48,8 @@ function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
         @test all( f_nonallocating .≈ f  )
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; dummy_kword659254=1, kwargs...)
         @test all( f_nonallocating .≈ f  )
+        fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
+        @test all( f .≈ fc )
     end
 end
 
@@ -73,6 +75,8 @@ function test_potential_energy(sys, calculator; kwargs...)
         @test dimension(e) == dimension(u"J")
         e2 = AtomsCalculators.potential_energy(sys, calculator; dummy_kword6594254=1, kwargs...)
         @test e ≈ e2
+        ec = AtomsCalculators.calculate(AtomsCalculators.Energy(), sys, calculator; kwargs...)
+        @test e ≈ ec
     end
 end
 
@@ -102,6 +106,8 @@ function test_virial(sys, calculator; kwargs...)
         @test size(v) == (l,l) # allow different dimensions than 3
         v2 = AtomsCalculators.virial(sys, calculator; dummy_kword6594254=1, kwargs...)
         @test all( v .≈ v2 )
+        vc = AtomsCalculators.calculate(AtomsCalculators.Virial(), sys, calculator; kwargs...)
+        @test all( v .≈ vc )
     end
 end
 

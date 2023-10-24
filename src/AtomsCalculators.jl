@@ -3,10 +3,10 @@ module AtomsCalculators
 
 using AtomsBase
 using StaticArrays
-using Test
 using Unitful
 
 include("interface.jl")
+include("utils.jl")
 include("submodules/AtomsCalculatorsTesting.jl")
 
 
