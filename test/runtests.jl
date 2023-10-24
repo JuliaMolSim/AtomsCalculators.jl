@@ -16,7 +16,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
     struct MyTypeC
     end
 
-    AtomsCalculators.@generate_rest function AtomsCalculators.potential_energy(system, calculator::Main.MyType; kwargs...)
+    AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::Main.MyType; kwargs...)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
@@ -24,7 +24,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return 0.0u"eV"
     end
     
-    AtomsCalculators.@generate_rest function AtomsCalculators.virial(system, calculator::Main.MyType; kwargs...)
+    AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::Main.MyType; kwargs...)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
@@ -33,7 +33,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
     end
     
     
-    AtomsCalculators.@generate_rest function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+    AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
@@ -41,7 +41,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)) 
     end
     
-    AtomsCalculators.@generate_rest function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+    AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
         @assert length(f) == length(system)
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
@@ -54,7 +54,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return f
     end
 
-    AtomsCalculators.@generate_rest function AtomsCalculators.calculate(
+    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         ::AtomsCalculators.Energy, 
         system, 
         calculator::Main.MyTypeC; 
@@ -67,7 +67,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return 0.0u"eV"
     end
     
-    AtomsCalculators.@generate_rest function AtomsCalculators.calculate(
+    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         ::AtomsCalculators.Virial, 
         system, 
         calculator::Main.MyTypeC; 
@@ -81,7 +81,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
     end
     
     
-    AtomsCalculators.@generate_rest function AtomsCalculators.calculate(
+    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         ::AtomsCalculators.Forces, 
         system, 
         calculator::Main.MyTypeC; 

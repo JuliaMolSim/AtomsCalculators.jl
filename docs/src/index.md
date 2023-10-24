@@ -15,7 +15,3 @@ in mid. In the future there can be more functionality too.
 
 ```@index
 ```
-
-```@autodocs
-Modules = [AtomsCalculators]
-```

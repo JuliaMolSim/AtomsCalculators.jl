@@ -9,7 +9,7 @@ export test_forces
 export test_virial
 
 
-"""
+@doc """
     test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
@@ -54,7 +54,7 @@ function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
 end
 
 
-"""
+@doc """
     test_potential_energy(sys, calculator; kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
@@ -81,7 +81,7 @@ function test_potential_energy(sys, calculator; kwargs...)
 end
 
 
-"""
+@doc """
     test_virial(sys, calculator; kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your

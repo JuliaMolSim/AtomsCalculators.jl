@@ -1,8 +1,8 @@
 ## Macros to help implement calculators
 
 
-"""
-    @generate_rest
+@doc """
+    @generate_interface
 
 Generate complementary function for given function expression.
 This is mean to help defining the interface, so that you only need
@@ -14,7 +14,7 @@ to define one of the interface methods for a given type of calculation
 Generate `forces!` and `calculate(AtomsCalculators.Forces(), ...)` calls from `forces` definition
 
 ```julia
-AtomsCalculators.@generate_rest function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
     #definition here
 end
 ```
@@ -22,7 +22,7 @@ end
 Generate `forces` and  `calculate(AtomsCalculators.Forces(), ...)` calls from `forces!` definition
 
 ```julia
-AtomsCalculators.@generate_rest function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
     #definition here
 end
 ```
@@ -30,7 +30,7 @@ end
 Generate `AtomsCalculators.potential_energy` call from `AtomsCalculators.calculate` call.
 
 ```julia
-AtomsCalculators.@generate_rest function AtomsCalculators.calculate(::AtomsCalculators.Energy(), system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy(), system, calculator::Main.MyType; kwargs...)
     #definition here
 end
 ```
@@ -41,7 +41,7 @@ When using this macro, you need to define your calculator type completely - `MyP
 but `MyType` is not!
 
 """
-macro generate_rest(expr)
+macro generate_interface(expr)
     type = nothing
     try
         type = determine_type_calculation(expr)

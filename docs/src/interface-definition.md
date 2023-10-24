@@ -1,22 +1,35 @@
 # Interface Definition
 
-There are three main targets for calculations `potential_energy`, `forces` and [virial](https://en.wikipedia.org/wiki/Virial_stress). 
+There are two alternative ways to call the interface: using functions `potential_energy`, `forces` and [virial](https://en.wikipedia.org/wiki/Virial_stress), or using `calculate`
+function together with `Energy`, `Forces` and `Virial`.
 
-Individual calls are implemented by overloading `AtomsCalculators` functions
+Individual calls are implemented by dispatching `AtomsCalculators` functions
 
 - `AtomsCalculators.potential_energy` for potential energy calculation
 - `AtomsCalculators.forces` for allocating force calculation and/or...
 - `AtomsCalculators.forces!` for non-allocating force calculation
 - `AtomsCalculators.virial` for [virial](https://en.wikipedia.org/wiki/Virial_stress) calculation
 
-You do not need to implement all of these. To implement force calculation you only need to implement either allocating or non-allocating force call - see below for more details on how to implement force calculation.
+The `calculate` interface is implemented by dispatching to
 
-Each call has two inputs: `AtomsBase.AbstractSystem` compatible structure and a `calculator` that incudes details of the calculation method. Additionally keywords can be give. These can be ignored, but they need to be present in the function definition.
+- `AtomsCalculators.calculate` using `AtomsCalculators.Energy()` as the first argument for energy calculation
+- `AtomsCalculators.calculate` using `AtomsCalculators.Forces()` as the first argument for forces calculaton
+- `AtomsCalculators.calculate` using `AtomsCalculators.Virial()` as the first argument for virial calculation
+
+You do not need to implement all of these by yourself. There is macro that will help implement the other calls. 
+
+Each of the individual calls have two common inputs: `AtomsBase.AbstractSystem` compatible structure and a `calculator` that incudes details of the calculation method. Calculate interface has additionally the type of calculation as the first input. You can tune calculation by passing keyword arguments, which can be ignored, but they need to be present in the function definition.
+
+`potential_energy`, `forces`, `forces!` and `virial`:
 
 - First input is `AtomsBase.AbstractSystem` compatible structure
 - Second input is `calculator` structure
 - Method has to accept keyword arguments (they can be ignored)
 - Non-allocating force call `force!` has an AbstractVector as the first input, to which the evaluated force values are stored (look for more details below)
+
+`calculate`:
+
+- First input is either `Energy()`, `Forces()` or `Virial()`
 
 Outputs for the functions need to have following properties
 
@@ -25,12 +38,40 @@ Outputs for the functions need to have following properties
 - Virial is a square matrix (3x3 in 3D) that has units of force times length or energy
 
 
-## Example implementations
+## Implementing the interface
+
+You can either implement both of the calls e.g. for energy
+
+`AtomsCalculators.potential_energy(system, calculator; kwargs...)` and
+`AtomsCalculators(AtomsCalculators.Energy(), system, calculator; kwargs...)`
+
+### Example implementations
 
 Example `potential_energy` implementation
 
 ```julia
-function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
+struct MyType
+end
+
+AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::Main.MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition here
+    return 0.0u"eV"
+end
+```
+
+!!! note "Type definition under @generate_complement macro"
+    You need to use explicit definition of type when using
+    `@generate_interface` macro. `Main.MyType` is fine `MyType` is not!
+
+    You also need to define the type before the macro call.
+
+Completely equivalent implementation is
+
+```julia
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy(), system, calculator::Main.MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -42,7 +83,19 @@ end
 Example `virial` implementation
 
 ```julia
-function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::Main.MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition here
+    return zeros(3,3) * u"eV"
+end
+```
+
+Equivalent implementation is
+
+```julia
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial(), system, calculator::Main.MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -53,17 +106,14 @@ end
 
 ### Implementing forces call
 
-There are two optional implementations for force call allocating and non-allocating. The reason for this is that for very fast potentials allocation has noticeable effect on total evaluation time. So, in order to reduce the evaluation time, there is non-allocating option. On the other hand some expensive methods, like those in quantum chemistry, always allocate output data.
 
-To make implementation easy for everyone, we made it so that you need only to define either allocating or non-allocating force call. The other call is generated is then generated with a macro `AtomsCalculators.@generate_complement`.
 
 Example
 
 ```julia
-struct MyType
-end
 
-AtomsCalculators.@generate_complement function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+
+AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -72,13 +122,7 @@ AtomsCalculators.@generate_complement function AtomsCalculators.forces(system, c
 end
 ```
 
-This creates both `forces` and `forces!`. `AtomsCalculators.promote_force_type(system, calculator)` creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload `promote_force_type` for your force type, so that users can preallocate data for the force calculator. 
-
-!!! note "Type definition under @generate_complement macro"
-    You need to use explicit definition of type when using
-    `@generate_complement` macro. `Main.MyType` is fine `MyType` is not!
-
-    You also need to define the type before macro call.
+This creates both `forces` and `forces!` and `calculate` command with `Forces()` support. `AtomsCalculators.promote_force_type(system, calculator)` creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload `promote_force_type` for your force type, so that users can preallocate data for the force calculator. 
 
 Alternatively the definition could have been done with
 
@@ -86,7 +130,7 @@ Alternatively the definition could have been done with
 struct MyOtherType
 end
 
-AtomsCalculators.@generate_complement function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
     @assert length(f) == length(system)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
@@ -102,14 +146,14 @@ end
 
 ## Other Automatically Generated Calls
 
-Many methods have optimized calls when energy and forces (and/or virial) are calculated. To allow access to these calls there are also calls
+Many methods have optimized calls when energy and forces (and/or virial) are calculated together. To allow access to these calls there are also calls
 
 - `energy_forces` for potential energy and allocating forces
 - `energy_forces!` for potential energy and non-allocating forces
 - `energy_forces_virial` for potential energy, allocating forces and virial
 - `energy_forces_virial!` for potential energy, non-allocating forces and virial
 
-These all are generated automatically, if you have defined the corresponding individual methods. The main idea here is that you can implement more efficient methods by your self.
+These all are generated automatically, if you have defined the corresponding individual methods. The main idea here is that you can implement more efficient methods by yourself.
 
 Example implementation
 
