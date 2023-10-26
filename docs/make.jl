@@ -16,6 +16,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Interface Definition" => "interface-definition.md",
     ],
 )
 

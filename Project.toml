@@ -3,7 +3,14 @@ uuid = "a3e0e189-c65a-42c1-833c-339540406eb1"
 authors = ["JuliaMolSim contributors"]
 version = "0.1.0-DEV"
 
+[deps]
+AtomsBase = "a963bdd2-2df7-4f54-a1ee-49d51e6be12a"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
 [compat]
+AtomsBase = "0.3"
 julia = "1.6"
 
 [extras]

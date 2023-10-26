@@ -1,5 +1,13 @@
 module AtomsCalculators
 
-# Write your package code here.
+
+using AtomsBase
+using StaticArrays
+using Unitful
+
+include("interface.jl")
+include("utils.jl")
+include("submodules/AtomsCalculatorsTesting.jl")
+
 
 end
