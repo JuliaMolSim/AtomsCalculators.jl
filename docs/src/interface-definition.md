@@ -61,7 +61,7 @@ using Unitful
 struct MyType
 end
 
-AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -70,16 +70,10 @@ AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(
 end
 ```
 
-!!! note "Type definition under @generate_complement macro"
-    You need to use explicit definition of type when using
-    `@generate_interface` macro. `Main.MyType` is fine `MyType` is not!
-
-    You also need to define the type before the macro call.
-
 Completely equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -91,7 +85,7 @@ end
 Example `virial` implementation
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -103,7 +97,7 @@ end
 Equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -117,7 +111,7 @@ end
 Basic example
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -135,7 +129,7 @@ Same way `AtomsCalculators.promote_force_type(system, calculator)` creates a for
 Alternatively the definition could have been done with
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -150,7 +144,7 @@ or with non-allocating forces
 struct MyOtherType
 end
 
-AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::MyOtherType; kwargs...)
     @assert length(f) == length(system)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist

@@ -14,7 +14,7 @@ to define one of the interface methods for a given type of calculation
 Generate `forces!` and `calculate(AtomsCalculators.Forces(), ...)` calls from `forces` definition
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::MyType; kwargs...)
     #definition here
 end
 ```
@@ -22,7 +22,7 @@ end
 Generate `forces` and  `calculate(AtomsCalculators.Forces(), ...)` calls from `forces!` definition
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::MyOtherType; kwargs...)
     #definition here
 end
 ```
@@ -30,16 +30,10 @@ end
 Generate `AtomsCalculators.potential_energy` call from `AtomsCalculators.calculate` call.
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy(), system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy(), system, calculator::MyType; kwargs...)
     #definition here
 end
 ```
-
-# Note
-
-When using this macro, you need to define your calculator type completely - `MyPkg.MyType` is fine
-but `MyType` is not!
-
 """
 macro generate_interface(expr)
     type = nothing
@@ -89,6 +83,7 @@ macro generate_interface(expr)
         $expr
         $q
     end
+    # We need to excape macro hygiene to get correct type information
     return esc(ex)
 end
 
