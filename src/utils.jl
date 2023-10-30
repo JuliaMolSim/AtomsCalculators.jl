@@ -89,7 +89,7 @@ macro generate_interface(expr)
         $expr
         $q
     end
-    return ex
+    return esc(ex)
 end
 
 
