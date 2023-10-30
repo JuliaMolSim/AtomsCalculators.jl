@@ -4,37 +4,37 @@ using Unitful
 struct MyType
 end
 
-AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::Main.MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
     # add your own definition here
     return 0.0u&quot;eV&quot;
-end</code></pre><div class="admonition is-info"><header class="admonition-header">Type definition under @generate_complement macro</header><div class="admonition-body"><p>You need to use explicit definition of type when using <code>@generate_interface</code> macro. <code>Main.MyType</code> is fine <code>MyType</code> is not!</p><p>You also need to define the type before the macro call.</p></div></div><p>Completely equivalent implementation is</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::Main.MyType; kwargs...)
+end</code></pre><p>Completely equivalent implementation is</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
     # add your own definition here
     return ( energy = 0.0u&quot;eV, )
-end</code></pre><p>Example <code>virial</code> implementation</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::Main.MyType; kwargs...)
+end</code></pre><p>Example <code>virial</code> implementation</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
     # add your own definition here
     return zeros(3,3) * u&quot;eV&quot;
-end</code></pre><p>Equivalent implementation is</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::Main.MyType; kwargs...)
+end</code></pre><p>Equivalent implementation is</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
     # add your own definition here
     return ( virial = zeros(3,3) * u&quot;eV&quot;, )
-end</code></pre><h3 id="Implementing-forces-call"><a class="docs-heading-anchor" href="#Implementing-forces-call">Implementing forces call</a><a id="Implementing-forces-call-1"></a><a class="docs-heading-anchor-permalink" href="#Implementing-forces-call" title="Permalink"></a></h3><p>Basic example</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::Main.MyType; kwargs...)
+end</code></pre><h3 id="Implementing-forces-call"><a class="docs-heading-anchor" href="#Implementing-forces-call">Implementing forces call</a><a id="Implementing-forces-call-1"></a><a class="docs-heading-anchor-permalink" href="#Implementing-forces-call" title="Permalink"></a></h3><p>Basic example</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
     # add your own definition
     return AtomsCalculators.zero_forces(system, calculator)
-end</code></pre><p>This creates both <code>forces</code> and <code>forces!</code> and <code>calculate</code> command with <code>Forces()</code> support.</p><p><code>AtomsCalculators.zero_forces(system, calculator)</code> is a function that creates zero forces for a given calculator and system combo. You can use this function to tune your force output.</p><p>Same way <code>AtomsCalculators.promote_force_type(system, calculator)</code> creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload <code>promote_force_type</code> for your force type, this is automatically used by <code>zero_forces</code> command to change the element type. If you wan to change array type overload <code>zero_forces</code> for your calculator.</p><p>Alternatively the definition could have been done with</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::Main.MyType; kwargs...)
+end</code></pre><p>This creates both <code>forces</code> and <code>forces!</code> and <code>calculate</code> command with <code>Forces()</code> support.</p><p><code>AtomsCalculators.zero_forces(system, calculator)</code> is a function that creates zero forces for a given calculator and system combo. You can use this function to tune your force output.</p><p>Same way <code>AtomsCalculators.promote_force_type(system, calculator)</code> creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload <code>promote_force_type</code> for your force type, this is automatically used by <code>zero_forces</code> command to change the element type. If you wan to change array type overload <code>zero_forces</code> for your calculator.</p><p>Alternatively the definition could have been done with</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::MyType; kwargs...)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -43,7 +43,7 @@ end</code></pre><p>This creates both <code>forces</code> and <code>forces!</code
 end</code></pre><p>or with non-allocating forces</p><pre><code class="language-julia hljs">struct MyOtherType
 end
 
-AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::Main.MyOtherType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::MyOtherType; kwargs...)
     @assert length(f) == length(system)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
@@ -78,4 +78,4 @@ test_forces(hydrogen, MyType())
 test_virial(hydrogen, MyType())
 
 test_forces(hydrogen, MyOtherType()) # this works
-test_virial(hydrogen, MyOtherType()) # this will fail</code></pre><p><em>It is recommended that you use the test functions to test that your implementation supports the API fully!</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Friday 27 October 2023 05:41">Friday 27 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+test_virial(hydrogen, MyOtherType()) # this will fail</code></pre><p><em>It is recommended that you use the test functions to test that your implementation supports the API fully!</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Monday 30 October 2023 23:08">Monday 30 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
