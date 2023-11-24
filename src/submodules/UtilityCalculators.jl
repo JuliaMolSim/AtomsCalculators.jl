@@ -6,6 +6,17 @@ using AtomsBase
 export SubSystemCalculator
 
 
+"""
+    SubSystemCalculator{T, TC}
+
+Submits subsystem to given calculator.
+
+The structrure is mutable to allow mutable calculators.
+
+# Fields
+- `calculator::T`  :  calculator which is used for the subsystem calculation
+- `subsys::TC`     :  definition of subsystem like array of indices - has to be iterable
+"""
 mutable struct SubSystemCalculator{T, TC}
     calculator::T
     subsys::TC
