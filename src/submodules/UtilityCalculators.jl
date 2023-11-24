@@ -25,8 +25,9 @@ AtomsCalculators.promote_force_type(sys, calc::SubSystemCalculator) = AtomsCalcu
 
 function _generate_subsys(sys, calc::SubSystemCalculator)
     @assert length(sys) >= length(calc.subsys)
+    sub_atoms = [ sys[i] for i in calc.subsys  ]
     sub_sys = FlexibleSystem(
-        sys[calc.subsys];
+        sub_atoms;
         [ k => sys[k] for k in keys(sys) ]...
     )
     return sub_sys
@@ -44,7 +45,10 @@ AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f, sys, c
     sub_sys = _generate_subsys(sys, calc)
     tmp_f = AtomsCalculators.zero_forces(sub_sys, calc)
     AtomsCalculators.forces!(tmp_f, sub_sys, calc.calculator; kwargs...)
-    f[calc.subsys] .= tmp_f
+    #TODO this wont work for GPU Arrays
+    for (i, val) in zip(calc.subsys, tmp_f)
+        f[i] = val
+    end
     return f
 end
 

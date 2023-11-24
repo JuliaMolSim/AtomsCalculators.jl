@@ -4,8 +4,9 @@ using Test
 using Unitful
 
 using AtomsCalculators.AtomsCalculatorsTesting
+using AtomsCalculators.UntilityCalculators
 
-@testset "AtomsCalculators.jl" begin
+@testset "AtomsCalculators interface" begin
     # Write your tests here.
     struct MyType
     end
@@ -21,7 +22,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # or give extra information like pairlist
     
         # add your own definition here
-        return 0.0u"eV"
+        return 1.0u"eV" * length(system)
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
@@ -29,7 +30,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # or give extra information like pairlist
     
         # add your own definition here
-        return zeros(3,3) * u"eV"
+        return ones(3,3) * u"eV" * length(system)
     end
     
     
@@ -64,7 +65,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # or give extra information like pairlist
     
         # add your own definition here
-        return ( energy = 0.0u"eV", )
+        return ( energy = 1.0u"eV", )
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
@@ -113,4 +114,38 @@ using AtomsCalculators.AtomsCalculatorsTesting
     @test haskey(efv, :energy)
     @test haskey(efv, :forces)
     @test haskey(efv, :virial)
+end
+
+
+@testset "UntilityCalculators" begin
+
+    hydrogen = isolated_system([
+    :H => [0, 0, 0.]u"Å",
+    :H => [0, 0, 1.]u"Å",
+    :H => [4., 0, 0.]u"Å",
+    :H => [4., 1., 0.]u"Å"
+    ])
+
+    sub_cal = SubSystemCalculator(MyType(), 1:2)
+
+    test_potential_energy(hydrogen, sub_cal)
+    test_forces(hydrogen, sub_cal)
+    test_virial(hydrogen, sub_cal)
+
+    f = AtomsCalculators.zero_forces(hydrogen, sub_cal)
+    f_zero = f[1]
+    f_one = (ones ∘ typeof)( ustrip.(f_zero) ) * unit(f_zero[1])
+    fill!(f, f_one)
+    
+
+    @test AtomsCalculators.potential_energy(hydrogen, sub_cal) == 2.0u"eV"
+
+    AtomsCalculators.forces!(f, hydrogen, sub_cal)
+    @test f[1] == f_zero
+    @test f[2] == f_zero
+    @test f[3] == f_one
+    @test f[4] == f_one
+
+    v = AtomsCalculators.virial(hydrogen, sub_cal)
+    @test v[1,1] == 2.0u"eV"
 end
