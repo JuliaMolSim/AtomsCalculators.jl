@@ -1,5 +1,7 @@
 module AtomsCalculators
 
+export AbstractCalculator
+
 
 using AtomsBase
 using StaticArrays

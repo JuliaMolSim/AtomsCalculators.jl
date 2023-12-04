@@ -1,4 +1,6 @@
 
+abstract type AbstractCalculator end
+
 struct Energy end
 struct Forces end
 struct Virial end
