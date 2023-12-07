@@ -3,7 +3,10 @@ module UntilityCalculators
 using ..AtomsCalculators
 using AtomsBase
 
+export CombinationCalculator
 export SubSystemCalculator
+
+export generate_keywords
 
 
 """
@@ -67,5 +70,43 @@ AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc:
     sub_sys = _generate_subsys(sys, calc)
     return AtomsCalculators.virial(sub_sys, calc.calculator; kwargs...)
 end
+
+
+
+struct CombinationCalculator{N}
+    calculators::NTuple{N,Any}
+    multithreading::Bool
+    function CombinationCalculator(calculators...; multithreading=false)
+
+        new{length(calculators)}(calculators, multithreading)
+    end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", calc::CombinationCalculator)
+    print(io, "CombinationCalculator - ", length(calc) , " calculators")
+end
+
+
+generate_keywords(sys, calculators...; kwargs...) = kwargs
+
+Base.length(cc::CombinationCalculator) = length(cc.calculators)
+
+
+AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, calc::CombinationCalculator; kwargs...)
+    new_kwargs = generate_keywords(sys, calc.calculators...; kwargs...)
+    e = sum(calc.calculators) do c
+        AtomsCalculators.potential_energy(sys, c; new_kwargs...)
+    end
+    return e
+end
+
+AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc::CombinationCalculator; kwargs...)
+    new_kwargs = generate_keywords(sys, calc.calculators...; kwargs...)
+    v = sum(calc.calculators) do c
+        AtomsCalculators.virial(sys, c; new_kwargs...)
+    end
+    return v
+end
+
 
 end
