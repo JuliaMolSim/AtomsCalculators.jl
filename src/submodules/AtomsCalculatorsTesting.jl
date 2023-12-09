@@ -33,6 +33,8 @@ function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
         f = AtomsCalculators.forces(sys, calculator; kwargs...)
         @test typeof(f) <: AbstractVector
         @test eltype(f) <: AbstractVector
+        @test eltype(f) == ftype
+        @test typeof(f) == typeof(AtomsCalculators.zero_forces(sys,calculator))
         @test length(f) == length(sys)
         T = (eltype ∘ eltype)( f )
         f_matrix = reinterpret(reshape, T, f)
@@ -46,6 +48,7 @@ function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
         f_nonallocating = zeros(ftype, length(sys))
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; kwargs...)
         @test all( f_nonallocating .≈ f  )
+        fill!(f_nonallocating, zero(ftype)) # set f array to zeros
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; dummy_kword659254=1, kwargs...)
         @test all( f_nonallocating .≈ f  )
         fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
