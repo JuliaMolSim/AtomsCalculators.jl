@@ -119,7 +119,7 @@ using AtomsCalculators.UntilityCalculators
 end
 
 
-@testset "UntilityCalculators" begin
+@testset "UtilityCalculators" begin
     hydrogen = isolated_system([
         :H => [0, 0, 0.]u"Å",
         :H => [0, 0, 1.]u"Å",

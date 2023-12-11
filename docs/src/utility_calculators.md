@@ -2,7 +2,7 @@
 
 We supply special calculators that can be used to alter input 
 
-All of these calculators are defined in a submodule [UtilityCalculators](@ref). To use them just add
+All of these calculators are defined in submodule [UtilityCalculators](@ref). To use them just add
 
 ```julia
 using AtomsCalculators.UntilityCalculators
@@ -86,7 +86,7 @@ e = AtomsCalculators.potential_energy(system, rep_calc) # message generated
 
 ## Subsystem Calculator
 
-[SubSystemCalculator](@ref) is used to split input system for a smaller parts. This is useful e.g. for QM/MM calculations.
+[SubSystemCalculator](@ref) is used to split input system into smaller parts. This is useful e.g. for QM/MM calculations.
 
 To use [SubSystemCalculator](@ref) you need to give an other calculator and indexes that define subsystem. E.g., if your subsystem is defined by atoms 1 to 10 and 15 you can create subsystem calculator by
 
@@ -94,3 +94,4 @@ To use [SubSystemCalculator](@ref) you need to give an other calculator and inde
 sub_calc = SubSystemCalculator( mycalc, [1:10..., 15])
 ```
 
+This calculator will then create a system with atoms 1 to 10 and 15 and pass that one into the calculator. Zero forces are given to all other atoms.
