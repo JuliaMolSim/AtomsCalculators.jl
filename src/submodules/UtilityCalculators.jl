@@ -4,6 +4,7 @@ using ..AtomsCalculators
 using AtomsBase
 
 export CombinationCalculator
+export ReportingCalculator
 export SubSystemCalculator
 
 export generate_keywords
@@ -25,7 +26,7 @@ The structrure is mutable to allow mutable calculators.
 - `calculator::T`  :  calculator which is used for the subsystem calculation
 - `subsys::TC`     :  definition of subsystem like array of indices - has to be iterable
 """
-mutable struct SubSystemCalculator{T, TC}
+mutable struct SubSystemCalculator{T, TC} # Mutable struct so that calculator can mutate inself
     calculator::T
     subsys::TC
     function SubSystemCalculator(calc, subsys)
@@ -105,7 +106,7 @@ CombinationCalculator( calc1, calc2, ...; multithreading=false)
 ```
 
 """
-struct CombinationCalculator{N}
+mutable struct CombinationCalculator{N} # Mutable struct so that calculators can mutate themself
     calculators::NTuple{N,Any}
     multithreading::Bool
     function CombinationCalculator(calculators...; multithreading=false)
@@ -215,6 +216,128 @@ AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc:
         end
     end
     return v
+end
+
+
+##
+
+
+generate_message(sys, calculator, calc_result; kwargs...) = calc_result
+
+mutable struct ReportingCalculator{T, TC, TF}
+    calculator::T
+    channel::Channel{TC}
+    current_step::Int
+    reporting_step::Int
+    message::TF
+    function ReportingCalculator(
+        calc, 
+        channel::Channel; 
+        reporting_step=1, 
+        message_function=nothing
+    )
+        message = something(message_function, generate_message)
+        new{typeof(calc), eltype(channel), typeof(message)}(calc, channel, 1, reporting_step, message)
+    end
+end
+
+
+function Base.show(io::IO, ::MIME"text/plain", calc::ReportingCalculator)
+    print(io, "ReportingCalculator - current step = ", calc.current_step)
+end
+
+Base.fetch(rcalc::ReportingCalculator) = fetch(rcalc.channel)
+Base.take!(rcalc::ReportingCalculator) = take!(rcalc.channel)
+
+
+function AtomsCalculators.potential_energy(
+    sys, 
+    calc::ReportingCalculator; 
+    kwargs...
+)
+    e = AtomsCalculators.potential_energy(sys, calc.calculator; kwargs...)
+    if calc.current_step % calc.reporting_step == 0
+        mess = calc.message(sys, calc.calculator, e; kwargs...)
+        if ! isnothing(mess)
+            put!(calc.channel, mess)
+        end
+    end
+    calc.current_step += 1
+    return e
+end
+
+
+function AtomsCalculators.virial(
+    sys, 
+    calc::ReportingCalculator; 
+    kwargs...
+)
+    v = AtomsCalculators.virial(sys, calc.calculator; kwargs...)
+    if calc.current_step % calc.reporting_step == 0
+        mess = calc.message(sys, calc.calculator, v; kwargs...)
+        if ! isnothing(mess)
+            put!(calc.channel, mess)
+        end
+    end
+    calc.current_step += 1
+    return v
+end
+
+
+function AtomsCalculators.forces(
+    sys, 
+    calc::ReportingCalculator; 
+    kwargs...
+)
+    f = AtomsCalculators.forces(sys, calc.calculator; kwargs...)
+    if calc.current_step % calc.reporting_step == 0
+        mess = calc.message(sys, calc.calculator, f; kwargs...)
+        if ! isnothing(mess)
+            put!(calc.channel, mess)
+        end
+    end
+    calc.current_step += 1
+    return f
+end
+
+
+function AtomsCalculators.forces!(
+    f,
+    sys, 
+    calc::ReportingCalculator; 
+    kwargs...
+)
+    fout = AtomsCalculators.forces!(f, sys, calc.calculator; kwargs...)
+    if calc.current_step % calc.reporting_step == 0
+        mess = calc.message(sys, calc.calculator, fout; kwargs...)
+        if ! isnothing(mess)
+            put!(calc.channel, mess)
+        end
+    end
+    calc.current_step += 1
+    return fout
+end
+
+
+function AtomsCalculators.calculate(
+    calc_method::Union{
+        AtomsCalculators.Energy,
+        AtomsCalculators.Forces,
+        AtomsCalculators.Virial
+    },
+    sys, 
+    calc::ReportingCalculator; 
+    kwargs...
+)
+    tmp = AtomsCalculators.calculate(calc_method, sys, calc.calculator; kwargs...)
+    if calc.current_step % calc.reporting_step == 0
+        mess = calc.message(sys, calc.calculator, tmp; kwargs...)
+        if ! isnothing(mess)
+            put!(calc.channel, mess)
+        end
+    end
+    calc.current_step += 1
+    return tmp
 end
 
 

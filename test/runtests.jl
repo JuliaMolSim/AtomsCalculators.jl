@@ -171,5 +171,13 @@ end
         @test all( v .≈ v_ref )
     end
 
+    @testset "ReportingCalculator" begin
+        rcalc = ReportingCalculator(MyType(), Channel(32))
+        v = AtomsCalculators.calculate(AtomsCalculators.Virial(), hydrogen, rcalc)
+        @test v == fetch(rcalc)
+        test_potential_energy(hydrogen, rcalc)
+        test_forces(hydrogen, rcalc)
+        test_virial(hydrogen, rcalc)
+    end
 
 end
