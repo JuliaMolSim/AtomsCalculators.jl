@@ -175,6 +175,7 @@ end
         rcalc = ReportingCalculator(MyType(), Channel(32))
         v = AtomsCalculators.calculate(AtomsCalculators.Virial(), hydrogen, rcalc)
         @test v == fetch(rcalc)
+        @test v == take!(rcalc)
         test_potential_energy(hydrogen, rcalc)
         test_forces(hydrogen, rcalc)
         test_virial(hydrogen, rcalc)
