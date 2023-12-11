@@ -25,7 +25,7 @@ Each of the individual calls have two common inputs: `AtomsBase.AbstractSystem` 
 - First input is `AtomsBase.AbstractSystem` compatible structure
 - Second input is `calculator` structure
 - Method has to accept keyword arguments (they can be ignored)
-- Non-allocating force call `force!` has an AbstractVector as the first input, to which the evaluated force values are stored (look for more details below)
+- Non-allocating force call `force!` has an AbstractVector as the first input, to which the evaluated force values are **added to** (look for more details below)
 
 `calculate`:
 

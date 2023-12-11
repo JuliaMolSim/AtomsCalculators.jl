@@ -80,44 +80,6 @@ end
 
 ## Combination Calculator
 
-"""
-    CombinationCalculator{N}
-
-You can combine several calculators to one calculator with this.
-Giving keyword argument `multithreading=true` toggles on parallel execution
-calculators.
-
-Other use case is editing keywords that are passed on the calculators.
-E.g. you can generate new keyword argument that is then passed to all calculators.
-This allows you to share e.g. a pairlist between calculators.
-
-To control what keywords are passed you need to extend `generate_keywords` function.
-
-
-# Fields
-
-- calculators::NTuple{N,Any}  : NTuple that holds calculators
-- multithreading::Bool        : determines where calculators are executed in parallel or not
-
-# Creation
-
-```julia
-CombinationCalculator( calc1, calc2, ...; multithreading=false)
-```
-
-"""
-mutable struct CombinationCalculator{N} # Mutable struct so that calculators can mutate themself
-    calculators::NTuple{N,Any}
-    multithreading::Bool
-    function CombinationCalculator(calculators...; multithreading=false)
-
-        new{length(calculators)}(calculators, multithreading)
-    end
-end
-
-function Base.show(io::IO, ::MIME"text/plain", calc::CombinationCalculator)
-    print(io, "CombinationCalculator - ", length(calc) , " calculators")
-end
 
 """
     generate_keywords
@@ -147,6 +109,47 @@ Then calculates pairlist and passes it forward as a keyword.
 """
 generate_keywords(sys, calculators...; kwargs...) = kwargs
 
+
+"""
+    CombinationCalculator{N}
+
+You can combine several calculators to one calculator with this.
+Giving keyword argument `multithreading=true` toggles on parallel execution
+calculators.
+
+Other use case is editing keywords that are passed on the calculators.
+E.g. you can generate new keyword argument that is then passed to all calculators.
+This allows you to share e.g. a pairlist between calculators.
+
+To control what keywords are passed you need to extend `generate_keywords` function.
+
+
+# Fields
+
+- calculators::NTuple{N,Any}  : NTuple that holds calculators
+- multithreading::Bool        : determines where calculators are executed in parallel or not
+
+# Creation
+
+```julia
+CombinationCalculator( calc1, calc2, ...; multithreading=false)
+```
+
+"""
+mutable struct CombinationCalculator{N, T} # Mutable struct so that calculators can mutate themself
+    calculators::NTuple{N,Any}
+    multithreading::Bool
+    keywords::T
+    function CombinationCalculator(calculators...; multithreading=false, keyword_generator=nothing)
+        kgen = something(keyword_generator, generate_keywords)
+        new{length(calculators), typeof(kgen)}(calculators, multithreading, kgen)
+    end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", calc::CombinationCalculator)
+    print(io, "CombinationCalculator - ", length(calc) , " calculators")
+end
+
 Base.length(cc::CombinationCalculator) = length(cc.calculators)
 
 Base.getindex(cc::CombinationCalculator, i) = cc.calculators[i]
@@ -155,7 +158,7 @@ Base.firstindex(cc::CombinationCalculator) = 1
 
 
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, calc::CombinationCalculator; kwargs...)
-    new_kwargs = generate_keywords(sys, calc.calculators...; kwargs...)
+    new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
     if calc.multithreading
         tmp = map(calc.calculators) do c
             Threads.@spawn AtomsCalculators.potential_energy(sys, c; new_kwargs...)
@@ -171,7 +174,7 @@ end
 
 
 function AtomsCalculators.forces(sys, calc::CombinationCalculator; kwargs...)
-    new_kwargs = generate_keywords(sys, calc.calculators...; kwargs...)
+    new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
     if calc.multithreading
         tmp = map(calc.calculators) do c
             Threads.@spawn AtomsCalculators.forces(sys, c; new_kwargs...)
@@ -193,7 +196,7 @@ end
 
 
 function AtomsCalculators.forces!(f, sys, calc::CombinationCalculator; kwargs...)
-    new_kwargs = generate_keywords(sys, calc.calculators...; kwargs...)
+    new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
 
     # Non allocating forces is only truly non allocating when sequential
     foreach( calc.calculators ) do cal
@@ -204,7 +207,7 @@ end
 
 
 AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc::CombinationCalculator; kwargs...)
-    new_kwargs = generate_keywords(sys, calc.calculators...; kwargs...)
+    new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
     if calc.multithreading
         tmp = map(calc.calculators) do c
             Threads.@spawn AtomsCalculators.virial(sys, c; new_kwargs...)
