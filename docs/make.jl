@@ -17,6 +17,9 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Interface Definition" => "interface-definition.md",
+        "Utility Calculators" => "utility_calculators.md",
+        "Implementers Check List" => "implementer_list.md",
+        "Reference" => "reference.md"
     ],
 )
 
