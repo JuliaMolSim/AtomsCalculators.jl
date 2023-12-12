@@ -1,4 +1,4 @@
-module UntilityCalculators
+module UtilityCalculators
     
 using ..AtomsCalculators
 using AtomsBase

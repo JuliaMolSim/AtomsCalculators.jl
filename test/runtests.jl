@@ -5,7 +5,7 @@ using Test
 using Unitful
 
 using AtomsCalculators.AtomsCalculatorsTesting
-using AtomsCalculators.UntilityCalculators
+using AtomsCalculators.UtilityCalculators
 
 @testset "AtomsCalculators interface" begin
     # Write your tests here.

@@ -5,7 +5,7 @@ We supply special calculators that can be used to alter input
 All of these calculators are defined in submodule [UtilityCalculators](@ref). To use them just add
 
 ```julia
-using AtomsCalculators.UntilityCalculators
+using AtomsCalculators.UtilityCalculators
 ```
 
 ## Combination Calculator
