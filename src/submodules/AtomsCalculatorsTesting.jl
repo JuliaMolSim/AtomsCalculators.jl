@@ -7,6 +7,7 @@ using Test
 export test_potential_energy
 export test_forces
 export test_virial
+export test_hessian
 
 
 """
@@ -117,6 +118,25 @@ function test_virial(sys, calculator; kwargs...)
     end
 end
 
+
+
+function test_hessian(sys, calculator; kwargs...)
+    @testset "Test hessian for $(typeof(calculator))" begin
+        l = length(sys) * length(position(sys, 1))
+        h = AtomsCalculators.hessian(sys, calculator; kwargs...)
+        @test isa(h, AbstractArray)
+        @test eltype(h) <: Number
+        @test size(h) == (l,l)
+        h_cpu_array = Array(h)
+        @test dimension(h_cpu_array[1,1]) == dimension(u"J/m^2")
+        h2 = AtomsCalculators.hessian(sys, calculator; dummy_kword235887=2, kwargs...)
+        @test all( h .≈ h2 )
+        hc = AtomsCalculators.calculate(AtomsCalculators.Hessian(), sys, calculator; kwargs...)
+        @test isa(hc, NamedTuple)
+        @test haskey(hc, :hessian)
+        @test all( h .≈ hc[:hessian] )
+    end
+end
 
 
 end

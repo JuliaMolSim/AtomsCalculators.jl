@@ -1,7 +1,7 @@
 # Interface Definition
 
-There are two alternative ways to call the interface: using functions `potential_energy`, `forces` and [virial](https://en.wikipedia.org/wiki/Virial_stress), or using `calculate`
-function together with `Energy`, `Forces` and `Virial`.
+There are two alternative ways to call the interface: using functions `potential_energy`, `forces`, [virial](https://en.wikipedia.org/wiki/Virial_stress) and `hessian`, or using `calculate`
+function together with `Energy`, `Forces`, `Virial` and `Hessian`.
 
 Individual calls are implemented by dispatching `AtomsCalculators` functions
 
@@ -9,18 +9,20 @@ Individual calls are implemented by dispatching `AtomsCalculators` functions
 - `AtomsCalculators.forces` for allocating force calculation and/or...
 - `AtomsCalculators.forces!` for non-allocating force calculation
 - `AtomsCalculators.virial` for [virial](https://en.wikipedia.org/wiki/Virial_stress) calculation
+- `AtomsCalculators.hessian` for Hessian
 
 The `calculate` interface is implemented by dispatching to
 
 - `AtomsCalculators.calculate` using `AtomsCalculators.Energy()` as the first argument for energy calculation
 - `AtomsCalculators.calculate` using `AtomsCalculators.Forces()` as the first argument for forces calculaton
 - `AtomsCalculators.calculate` using `AtomsCalculators.Virial()` as the first argument for virial calculation
+- `AtomsCalculators.calculate` using `AtomsCalculators.Hessian()` as the first argument for Hessian calculation
 
 You do not need to implement all of these by yourself. There is macro that will help implement the other calls. 
 
 Each of the individual calls have two common inputs: `AtomsBase.AbstractSystem` compatible structure and a `calculator` that incudes details of the calculation method. Calculate interface has additionally the type of calculation as the first input. You can tune calculation by passing keyword arguments, which can be ignored, but they need to be present in the function definition.
 
-`potential_energy`, `forces`, `forces!` and `virial`:
+`potential_energy`, `forces`, `forces!`, `virial` and `hessian`:
 
 - First input is `AtomsBase.AbstractSystem` compatible structure
 - Second input is `calculator` structure
@@ -29,7 +31,7 @@ Each of the individual calls have two common inputs: `AtomsBase.AbstractSystem` 
 
 `calculate`:
 
-- First input is either `Energy()`, `Forces()` or `Virial()`
+- First input is either `Energy()`, `Forces()`, `Virial()` or `Hessian()`
 - Second is `AtomsBase.AbstractSystem` compatible structure
 - Third is `calculator` structure
 - Method has to accept keyword arguments (they can be ignored)
@@ -41,6 +43,7 @@ Outputs for the functions need to have following properties
 - Energy is a subtype of `Number` that has a unit with dimensions of energy (mass * length^2 / time^2)
 - Force output is a subtype of `AbstractVector` with element type also a subtype of AbstractVector (length 3 in 3D) and unit with dimensions of force (mass * length / time^2). With additional property that it can be reinterpret as a matrix
 - Virial is a square matrix (3x3 in 3D) that has units of force times length or energy
+- Hessian is a square matrix, with a side length of dimension times number of atoms and unit of energy divided by square of distance
 - Calculate methods return a [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple) that uses keys `:energy`, `:forces` and `:virial` to identify the results, which have the types defined above
 
 
@@ -158,6 +161,40 @@ AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::Abstra
 end
 ```
 
+### Implementing Hessian
+
+Hessian can be implemented in similar ways. Using either direct call
+
+```julia
+AtomsCalculators.@generate_interface function AtomsCalculators.hessian(system, calculator::MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition
+    l = length(system) * length(position(system, 1))
+    return zeros(l,l) * (u"eV" / u"Å"^2)
+end
+```
+
+or calculator call
+
+```julia
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Hessian, 
+    system, 
+    calculator::MyTypeC; 
+    kwargs...
+)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition
+    l = length(system) * length(position(system, 1))
+    h = zeros(l,l) * (u"eV" / u"Å"^2)
+    return ( hessian = h, )
+end
+```
+
 ## Other Automatically Generated Calls
 
 Many methods have optimized calls when energy and forces (and/or virial) are calculated together. To allow access to these calls there are also calls
@@ -188,11 +225,12 @@ end
 
 Defining this does not overload the corresponding non-allocating call - you need to do that separately.
 
-Output for the combination methods is defined to have keys `:energy`, `:forces` and `:virial`. You can access them with
+Output for the combination methods is defined to have keys `:energy`, `:forces`, `:virial` and `:hessian`. You can access them with
 
 - `output[:energy]` for energy
 - `output[:forces]` for forces
 - `output[:virial]` for viral
+- `output[:hessian]` for hessian
 
 The type of the output can be [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple), as was in the example above, or any structure that has the keys implemented and also supports splatting. The reason for this is that this allows everyone to implement the performance functions without being restricted to certain output type, and to allow using `haskey` to check the output.
 
@@ -203,6 +241,7 @@ We have implemented function calls to help you testing the API. There is one cal
 - `test_potential_energy` to test potential_energy call
 - `test_forces` to test both allocating and non-allocating force calls
 - `test_virial` to test virial call
+- `test_hessian` to test hessian call
 
 To get these access to these functions you need to call
 

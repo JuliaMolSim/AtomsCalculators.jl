@@ -2,6 +2,7 @@
 struct Energy end
 struct Forces end
 struct Virial end
+struct Hessian end
 
 function potential_energy end 
 
@@ -12,6 +13,8 @@ function forces! end
 function virial end 
 
 function calculate end
+
+function hessian end
 
 promote_force_type(::Any, ::Any) = SVector(1., 1., 1.) * u"eV/Å" |> typeof
 
