@@ -57,6 +57,8 @@ macro generate_interface(expr)
             q = generate_forces_from_calculator( calculator_type )
         elseif type[:type] == :Virial
             q = generate_virial( calculator_type )
+        elseif type[:type] == :Hessian
+            q = generate_hessian( calculator_type )
         end
     else
         if type[:type] == :potential_energy
@@ -77,6 +79,8 @@ macro generate_interface(expr)
             end
         elseif type[:type] == :virial
             q = generate_calculator_virial( calculator_type )
+        elseif type[:type] == :hessian
+            q = generate_calculator_hessian( calculator_type )
         end
     end
     ex = quote
@@ -115,14 +119,14 @@ function determine_type_calculation(expr)
         error("function definition is not correct")
     end
     type_of_calculation = expr.args[1].args[1].args[end].value
-    if type_of_calculation in [:potential_energy, :forces, :forces!, :virial]
+    if type_of_calculation in [:potential_energy, :forces, :forces!, :virial, :hessian]
         return (;
             :type => type_of_calculation,
             :calculator => false
         )
     elseif type_of_calculation == :calculate # calculator interface -> find calc type too
         # Need to have definition of AtomsCalculators.Energy() etc.
-        if expr.args[1].args[3].args[1].args[2].value in [:Energy, :Forces, :Virial]
+        if expr.args[1].args[3].args[1].args[2].value in [:Energy, :Forces, :Virial, :Hessian]
             return (;
                 :type => expr.args[1].args[3].args[1].args[2].value,
                 :calculator => true
@@ -229,4 +233,25 @@ function generate_forces_from_calculator(calc_type)
         $q1
         $q2
     end
+end
+
+
+function generate_calculator_hessian(calc_type)
+    q = quote 
+        function AtomsCalculators.calculate(::AtomsCalculators.Hessian, system, calculator::$calc_type; kwargs...)
+            h = AtomsCalculators.hessian(system, calculator; kwargs...)
+            return ( hessian = h, )
+        end
+    end
+    return q
+end
+
+function generate_hessian(calc_type)
+    q = quote
+        function AtomsCalculators.hessian(system, calculator::$calc_type; kwargs...)
+            h = AtomsCalculators.calculate(AtomsCalculators.Hessian(), system, calculator; kwargs...)
+            return h[:hessian]
+        end
+    end
+    return q
 end

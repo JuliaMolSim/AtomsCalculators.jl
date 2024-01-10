@@ -40,6 +40,16 @@ using AtomsCalculators.AtomsCalculatorsTesting
         # add your own definition
         return AtomsCalculators.zero_forces(system, calculator)
     end
+
+    AtomsCalculators.@generate_interface function AtomsCalculators.hessian(system, calculator::MyType; kwargs...)
+        # we can ignore kwargs... or use them to tune the calculation
+        # or give extra information like pairlist
+    
+        # add your own definition
+        l = length(system) * length(position(system, 1))
+        return zeros(l,l) * (u"eV" / u"Å"^2)
+    end
+
     
     AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::MyOtherType; kwargs...)
         @assert length(f) == length(system)
@@ -95,6 +105,21 @@ using AtomsCalculators.AtomsCalculatorsTesting
         return ( forces = f, )
     end
 
+    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+        ::AtomsCalculators.Hessian, 
+        system, 
+        calculator::MyTypeC; 
+        kwargs...
+    )
+        # we can ignore kwargs... or use them to tune the calculation
+        # or give extra information like pairlist
+    
+        # add your own definition
+        l = length(system) * length(position(system, 1))
+        h = zeros(l,l) * (u"eV" / u"Å"^2)
+        return ( hessian = h, )
+    end
+
     hydrogen = isolated_system([
     :H => [0, 0, 0.]u"Å",
     :H => [0, 0, 1.]u"Å"
@@ -103,11 +128,13 @@ using AtomsCalculators.AtomsCalculatorsTesting
     test_potential_energy(hydrogen, MyType())
     test_forces(hydrogen, MyType())
     test_virial(hydrogen, MyType())
+    test_hessian(hydrogen, MyType())
     test_forces(hydrogen, MyOtherType())
     
     test_potential_energy(hydrogen, MyTypeC())
     test_forces(hydrogen, MyTypeC())
     test_virial(hydrogen, MyTypeC())
+    test_hessian(hydrogen, MyTypeC())
 
     efv = AtomsCalculators.energy_forces_virial(hydrogen, MyType())
     @test haskey(efv, :energy)
