@@ -1,8 +1,7 @@
 
-abstract type AbstractCalculator end
 
 struct DummyState end
-calculator_state(::AbstractCalculator) = DummyState()
+calculator_state(::Any) = DummyState()
 update_state(::Any, ::DummyState, ::Any, ::Any) = DummyState()
 
 struct Energy end
