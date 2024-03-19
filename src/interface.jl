@@ -1,4 +1,9 @@
 
+
+struct DummyState end
+calculator_state(::Any) = DummyState()
+update_state(::Any, ::DummyState, ::Any, ::Any) = DummyState()
+
 struct Energy end
 struct Forces end
 struct Virial end
