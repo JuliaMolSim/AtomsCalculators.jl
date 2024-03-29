@@ -8,6 +8,9 @@ export test_potential_energy
 export test_forces
 export test_virial
 
+export test_energy_forces
+export test_energy_forces_virial
+
 
 """
     test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, atol=1e8, kwargs...)
@@ -123,6 +126,71 @@ function test_virial(sys, calculator; kwargs...)
     end
 end
 
+
+
+function test_energy_forces(sys, calculator; atol=1e9, kwargs...)
+    test_potential_energy(sys, calculator; kwargs...)
+    test_forces(sys, calculator; atol=atol, kwargs...)
+    @testset "Test energy_forces for $(typeof(calculator))" begin
+        e0 = AtomsCalculators.potential_energy(sys, calculator; kwargs...)
+        f0 = AtomsCalculators.forces(sys, calculator; kwargs...)
+        res = AtomsCalculators.energy_forces(sys, calculator; kwargs...)
+        @test isa(res, NamedTuple)
+        @test haskey(res, :energy)
+        @test haskey(res, :forces)
+        @test e0 ≈ res[:energy] atol=atol*unit(e0)
+        @test all( f0 .- res[:forces]  ) do Δf
+            isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); atol=atol)
+        end
+        f1 = AtomsCalculators.zero_forces(sys, calculator)
+        res2 = AtomsCalculators.energy_forces!(f1, sys, calculator; kwargs...)
+        @test isa(res2, NamedTuple)
+        @test haskey(res2, :energy)
+        @test haskey(res2, :forces)
+        @test all( f1 .≈ res2[:forces] )
+        @test e0 ≈ res2[:energy] atol=atol*unit(e0)
+        @test all( f0 .- res2[:forces]  ) do Δf
+            isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); atol=atol)
+        end
+    end
+end
+
+
+function test_energy_forces_virial(sys, calculator; atol=1e9, kwargs...)
+    test_energy_forces(sys, calculator; atol=atol, kwargs...)
+    test_virial(sys, calculator, kwargs...)
+    @testset "Test energy_forces_virial for $(typeof(calculator))" begin
+        e0 = AtomsCalculators.potential_energy(sys, calculator; kwargs...)
+        f0 = AtomsCalculators.forces(sys, calculator; kwargs...)
+        v0 = AtomsCalculators.virial(sys, calculator; kwargs...)
+        res = AtomsCalculators.energy_forces_virial(sys, calculator; kwargs...)
+        @test isa(res, NamedTuple)
+        @test haskey(res, :energy)
+        @test haskey(res, :forces)
+        @test haskey(res, :virial)
+        @test e0 ≈ res[:energy] atol=atol*unit(e0)
+        @test all( f0 .- res[:forces]  ) do Δf
+            isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); atol=atol)
+        end
+        @test all( v0 .- res[:virial]  ) do Δv
+            isapprox( 0, ustrip(Δv); atol=atol)
+        end
+
+        f1 = AtomsCalculators.zero_forces(sys, calculator)
+        res2 = AtomsCalculators.energy_forces_virial!(f1, sys, calculator; kwargs...)
+        @test isa(res2, NamedTuple)
+        @test haskey(res2, :energy)
+        @test haskey(res2, :forces)
+        @test all( f1 .≈ res2[:forces] )
+        @test e0 ≈ res2[:energy] atol=atol*unit(e0)
+        @test all( f0 .- res2[:forces]  ) do Δf
+            isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); atol=atol)
+        end
+        @test all( v0 .- res2[:virial]  ) do Δv
+            isapprox( 0, ustrip(Δv); atol=atol)
+        end
+    end
+end
 
 
 end
