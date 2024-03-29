@@ -151,7 +151,8 @@ AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::Abstra
 
     # add your own definition
     for i in eachindex(f)
-        f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
+        # forces! adds to the force array
+        f[i] += zero(AtomsCalculators.promote_force_type(system, calculator))
     end
 
     return f
