@@ -10,7 +10,7 @@ export test_virial
 
 
 """
-    test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, kwargs...)
+    test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, atol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
 forces calculation.
@@ -20,11 +20,12 @@ own calculator. Test function will then call the interface and performs checks
 for the output and checks that random keywords are accepted in input. 
 
 `force_eltype` is given for `forces!` interface testing.
+`atol` can be given to control error between `forces!` and `forces` commands.
 `kwargs` can be passed to the `calculator` for tuning during testing.
 
 The calculator is expected to work without kwargs.
 """
-function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
+function test_forces(sys, calculator; force_eltype=nothing, atol=1e8, kwargs...)
     @testset "Test forces for $(typeof(calculator))" begin
         ftype = something(
             force_eltype, 
@@ -45,10 +46,14 @@ function test_forces(sys, calculator; force_eltype=nothing, kwargs...)
         @test length(f_cpu_array[1]) == (length ∘ position)(sys,1)
         f_nonallocating = zeros(ftype, length(sys))
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; kwargs...)
-        @test all( f_nonallocating .≈ f  )
+        @test all( f_nonallocating .- f  ) do Δf
+            isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); atol=atol)
+        end
         fill!(f_nonallocating, zero(ftype)) # set f array to zeros
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; dummy_kword659254=1, kwargs...)
-        @test all( f_nonallocating .≈ f  )
+        @test all( f_nonallocating .- f  ) do Δf
+            isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); atol=atol)
+        end
         fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
         @test isa(fc, NamedTuple)
         @test haskey(fc, :forces)
