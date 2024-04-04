@@ -1,8 +1,7 @@
 
 
-struct DummyState end
-calculator_state(::Any) = DummyState()
-update_state(::Any, ::DummyState, ::Any, ::Any) = DummyState()
+calculator_state(::Any) = missing
+update_state(::Any, ::Missing, ::Any, ::Any) = missing
 
 struct Energy end
 struct Forces end
