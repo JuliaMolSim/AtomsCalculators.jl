@@ -57,34 +57,40 @@ using AtomsCalculators.AtomsCalculatorsTesting
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         ::AtomsCalculators.Energy, 
         system, 
-        calculator::MyTypeC; 
+        calculator::MyTypeC,
+        parameters=nothing,
+        state=nothing;
         kwargs...
     )
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
         # add your own definition here
-        return ( energy = 0.0u"eV", )
+        return ( energy = 0.0u"eV", state = nothing )
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         ::AtomsCalculators.Virial, 
         system, 
-        calculator::MyTypeC; 
+        calculator::MyTypeC,
+        parameters=nothing,
+        state=nothing;
         kwargs...
     )
         # we can ignore kwargs... or use them to tune the calculation
         # or give extra information like pairlist
     
         # add your own definition here
-        return ( virial = zeros(3,3) * u"eV", )
+        return ( virial = zeros(3,3) * u"eV", state = nothing )
     end
     
     
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         ::AtomsCalculators.Forces, 
         system, 
-        calculator::MyTypeC; 
+        calculator::MyTypeC,
+        parameters=nothing,
+        state=nothing;
         kwargs...
     )
         # we can ignore kwargs... or use them to tune the calculation
@@ -92,7 +98,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
     
         # add your own definition
         f = AtomsCalculators.zero_forces(system, calculator)
-        return ( forces = f, )
+        return ( forces = f, state = nothing )
     end
 
     hydrogen = isolated_system([

@@ -138,17 +138,30 @@ function check_for_keywords(expr)
 end
 
 function get_calculator_type(expr)
-    return expr.args[1].args[end].args[2]
+    type_of_calculation = expr.args[1].args[1].args[end].value
+    if type_of_calculation == :calculate
+        return expr.args[1].args[end - 2].args[2]
+    else
+        return expr.args[1].args[end].args[2]
+    end
 end
 
 
 ## Functions to generate expressions
 
+# Generate low level calls from high-level ones.
+# ----------------------------------------------
+# calculate call generated from the high-level call return empty state.
+
 function generate_calculator_energy(calc_type)
     q = quote
-        function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.calculate(::AtomsCalculators.Energy, system,
+                                            calculator::$calc_type,
+                                            parameters=nothing,
+                                            state=nothing;
+                                            kwargs...)
             e = AtomsCalculators.potential_energy(system, calculator; kwargs...)
-            return ( energy = e, )
+            return ( energy = e, state = nothing )
         end
     end
     return q
@@ -156,9 +169,13 @@ end
 
 function generate_calculator_forces(calc_type)
     q = quote
-        function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.calculate(::AtomsCalculators.Forces, system,
+                                            calculator::$calc_type,
+                                            parameters=nothing,
+                                            state=nothing;
+                                            kwargs...)
             f = AtomsCalculators.forces(system, calculator; kwargs...)
-            return ( forces = f, )
+            return ( forces = f, state = nothing )
         end
     end
     return q
@@ -166,19 +183,28 @@ end
 
 function generate_calculator_virial(calc_type)
     q = quote 
-        function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.calculate(::AtomsCalculators.Virial, system,
+                                            calculator::$calc_type,
+                                            parameters=nothing,
+                                            state=nothing;
+                                            kwargs...)
             v = AtomsCalculators.virial(system, calculator; kwargs...)
-            return ( virial = v, )
+            return ( virial = v, state = nothing)
         end
     end
     return q
 end
 
 
+# Generate high level calls from high-level ones.
+# -----------------------------------------------
+# High level calls use the low level one with default parameters and state.
+
 function generate_potential_energy(calc_type)
     q = quote 
         function AtomsCalculators.potential_energy(system, calculator::$calc_type; kwargs...)
-            e = AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator; kwargs...)
+            e = AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator,
+                                           parameters = nothing, state = nothing; kwargs...)
             return e[:energy]
         end
     end
@@ -188,7 +214,8 @@ end
 function generate_virial(calc_type)
     q = quote
         function AtomsCalculators.virial(system, calculator::$calc_type; kwargs...)
-            v = AtomsCalculators.calculate(AtomsCalculators.Virial(), system, calculator; kwargs...)
+            v = AtomsCalculators.calculate(AtomsCalculators.Virial(), system, calculator,
+                                           parameters = nothing, state = nothing; kwargs...)
             return v[:virial]
         end
     end
@@ -220,7 +247,8 @@ end
 function generate_forces_from_calculator(calc_type)
     q1 = quote 
         function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
-            f = AtomsCalculators.calculate(AtomsCalculators.Forces(), system, calculator; kwargs...)
+            f = AtomsCalculators.calculate(AtomsCalculators.Forces(), system, calculator,
+                                           parameters = nothing, state = nothing; kwargs...)
             return f[:forces]
         end
     end
