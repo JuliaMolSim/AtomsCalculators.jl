@@ -43,7 +43,6 @@ Outputs for the functions need to have following properties
 - Virial is a square matrix (3x3 in 3D) that has units of force times length or energy
 - Calculate methods return a [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple) that uses keys `:energy`, `:forces` and `:virial` to identify the results, which have the types defined above
 
-
 ## Implementing the interface
 
 You can either implement both of the calls e.g. for energy
@@ -237,5 +236,3 @@ test_energy_forces_virial(hydrogen, MyType())
 ```
 
 *It is recommended that you use the test functions to test that your implementation supports the API fully!*
-
-
