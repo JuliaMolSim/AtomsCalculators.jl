@@ -52,9 +52,8 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         @test all( f_nonallocating .- f  ) do Δf # f_nonallocating ≈ f
             isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
         end
-        fill!(f_nonallocating, zero(ftype)) # set f array to zeros
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; dummy_kword659254=1, kwargs...)
-        @test all( f_nonallocating .- f  ) do Δf # f_nonallocating ≈ f
+        @test all( f_nonallocating .- 2f  ) do Δf # non-allocating is additive and called twice
             isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
         end
         fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
