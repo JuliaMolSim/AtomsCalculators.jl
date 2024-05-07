@@ -221,7 +221,9 @@ using AtomsCalculators.AtomsCalculatorsTesting
 hydrogen = isolated_system([
     :H => [0, 0, 0.]u"Å",
     :H => [0, 0, 1.]u"Å"
-])test_energy_forces(sys, calculator; rtol=1e8, kwargs...)nergy(hydrogen, MyType())
+])
+
+test_potential_energy(hydrogen, MyType())
 test_forces(hydrogen, MyType())
 test_virial(hydrogen, MyType())
 
