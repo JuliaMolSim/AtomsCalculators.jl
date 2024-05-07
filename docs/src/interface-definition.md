@@ -199,11 +199,13 @@ The type of the output can be [NamedTuple](https://docs.julialang.org/en/v1/base
 
 ## Testing Function Calls
 
-We have implemented function calls to help you testing the API. There is one call for each type of calls 
+We have implemented function calls to help you testing the API. There is one call for each type of calls
 
 - `test_potential_energy` to test potential_energy call
 - `test_forces` to test both allocating and non-allocating force calls
 - `test_virial` to test virial call
+- `test_energy_forces` to test both potential energy and force calls
+- `test_energy_forces_virial` to test everything 
 
 To get these access to these functions you need to call
 
@@ -220,14 +222,20 @@ using AtomsCalculators.AtomsCalculatorsTesting
 hydrogen = isolated_system([
     :H => [0, 0, 0.]u"Å",
     :H => [0, 0, 1.]u"Å"
-])
-
-test_potential_energy(hydrogen, MyType())
+])test_energy_forces(sys, calculator; rtol=1e8, kwargs...)nergy(hydrogen, MyType())
 test_forces(hydrogen, MyType())
 test_virial(hydrogen, MyType())
 
 test_forces(hydrogen, MyOtherType()) # this works
 test_virial(hydrogen, MyOtherType()) # this will fail
+
+# If you have energy and forces implemented use this over others
+test_energy_forces(hydrogen, MyType())
+
+# If you have energy, forces and virial implemented use this others
+test_energy_forces_virial(hydrogen, MyType())
 ```
 
 *It is recommended that you use the test functions to test that your implementation supports the API fully!*
+
+
