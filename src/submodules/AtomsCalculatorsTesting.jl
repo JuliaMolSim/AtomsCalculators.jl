@@ -58,7 +58,9 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         end
         fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
         @test isa(fc, NamedTuple)
-        @test haskey(fc, :forces)implements the whole interfaceftype) ), ustrip.(Δf); rtol=rtol)
+        @test haskey(fc, :forces)
+        @test all( f .- fc[:forces] ) do Δf  # f ≈ fc[:forces]
+            isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
         end
     end
 end
