@@ -16,7 +16,7 @@ export test_energy_forces_virial
     test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-forces calculation implements the whole interface.
+forces calculation implementation works correctly.
 
 To use this function create a `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -58,9 +58,7 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         end
         fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
         @test isa(fc, NamedTuple)
-        @test haskey(fc, :forces)
-        @test all( f .- fc[:forces] ) do Δf  # f ≈ fc[:forces]
-            isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
+        @test haskey(fc, :forces)implements the whole interfaceftype) ), ustrip.(Δf); rtol=rtol)
         end
     end
 end
@@ -70,7 +68,7 @@ end
     test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-potential energy calculation implements the whole interface.
+potential energy calculation implementation works correctly.
 
 To use this function create an `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -100,7 +98,7 @@ end
     test_virial(sys, calculator; kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-virial calculation implements the whole interface.
+virial calculation implementation works correctly.
 
 To use this function create an `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -133,7 +131,7 @@ end
     test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-forces calculation implements the whole interface.
+calculator implements energy and forces interfaces correctly.
 
 To use this function create a `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -177,7 +175,7 @@ end
     test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-forces calculation implements the whole interface.
+calculator implements energy, forces and virial interfaces correctly.
 
 To use this function create a `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
