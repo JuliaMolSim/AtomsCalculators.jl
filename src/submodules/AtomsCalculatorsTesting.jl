@@ -16,7 +16,7 @@ export test_energy_forces_virial
     test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-forces calculation.
+forces calculation implements the whole interface.
 
 To use this function create a `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -70,7 +70,7 @@ end
     test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-potential energy calculation.
+potential energy calculation implements the whole interface.
 
 To use this function create an `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -100,7 +100,7 @@ end
     test_virial(sys, calculator; kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-virial calculation.
+virial calculation implements the whole interface.
 
 To use this function create an `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -133,7 +133,7 @@ end
     test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-forces calculation.
+forces calculation implements the whole interface.
 
 To use this function create a `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
@@ -177,7 +177,7 @@ end
     test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
-forces calculation.
+forces calculation implements the whole interface.
 
 To use this function create a `AtomsBase` system `sys` and a `calculator` for your
 own calculator. Test function will then call the interface and performs checks
