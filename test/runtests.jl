@@ -48,7 +48,8 @@ using AtomsCalculators.AtomsCalculatorsTesting
     
         # add your own definition
         for i in eachindex(f)
-            f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
+            # forces! adds to the force array
+            f[i] += zero(AtomsCalculators.promote_force_type(system, calculator))
         end
     
         return f
@@ -100,9 +101,7 @@ using AtomsCalculators.AtomsCalculatorsTesting
     :H => [0, 0, 1.]u"Å"
     ])
 
-    test_potential_energy(hydrogen, MyType())
-    test_forces(hydrogen, MyType())
-    test_virial(hydrogen, MyType())
+    test_energy_forces_virial(hydrogen, MyType())
     test_forces(hydrogen, MyOtherType())
     
     test_potential_energy(hydrogen, MyTypeC())
