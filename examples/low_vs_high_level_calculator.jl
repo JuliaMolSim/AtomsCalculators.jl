@@ -23,7 +23,7 @@ struct HighLevelCalculator end
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(
         system::AbstractSystem, calculator::HighLevelCalculator;
         kwargs...)
-	0.0u"hartree"
+	return 0.0u"hartree"
 end
 
 struct LowLevelCalculator
@@ -47,7 +47,7 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         end
 
         # Return input state.
-        return ( energy = 0.0u"hartree", state)
+        return (; :energy => 0.0u"hartree", state)
 end
 
 hydrogen = isolated_system([
