@@ -45,7 +45,7 @@ macro generate_interface(expr)
     
     calculator_type = nothing
     try 
-        calculator_type = get_calculator_type(expr)
+        calculator_type = get_calculator_type(expr, type)
     catch _
         error("Could not determine calculators type")
     end
@@ -137,9 +137,8 @@ function check_for_keywords(expr)
     return any( [ Symbol("...") == x.head  for x in expr.args[1].args[2].args ] )
 end
 
-function get_calculator_type(expr)
-    type_of_calculation = expr.args[1].args[1].args[end].value
-    if type_of_calculation == :calculate
+function get_calculator_type(expr, type)
+    if type[:type] in [:Energy, :Forces, :Virial]
         return expr.args[1].args[end - 2].args[2]
     else
         return expr.args[1].args[end].args[2]
