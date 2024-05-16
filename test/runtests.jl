@@ -120,3 +120,75 @@ using AtomsCalculators.AtomsCalculatorsTesting
     @test haskey(efv, :forces)
     @test haskey(efv, :virial)
 end
+
+@testset "Parsing macro" begin
+    expr_low_level_energy = quote
+        function AtomsCalculators.calculate(::AtomsCalculators.Energy, system::AbstractSystem,
+                                            calculator::LowLevelCalculator,
+                                            parameters=nothing, state=nothing;
+                                            kwargs...)
+        end
+    end
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_low_level_energy).args[1])[:type] == :Energy
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_low_level_energy).args[1])[:calculator] == true
+
+    expr_low_level_forces = quote
+        function AtomsCalculators.calculate(::AtomsCalculators.Forces, system::AbstractSystem,
+                                            calculator::LowLevelCalculator,
+                                            parameters=nothing, state=nothing;
+                                            kwargs...)
+        end
+    end
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_low_level_forces).args[1])[:type] == :Forces
+    
+    expr_low_level_virial = quote
+        function AtomsCalculators.calculate(::AtomsCalculators.Virial, system::AbstractSystem,
+                                            calculator::LowLevelCalculator,
+                                            parameters=nothing, state=nothing;
+                                            kwargs...)
+        end
+    end
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_low_level_virial).args[1])[:type] == :Virial
+
+    expr_high_level_energy = quote
+        function AtomsCalculators.potential_energy(system::AbstractSystem,
+                                                   calculator::HighLevelCalculator;
+                                                   kwargs...)
+        end
+    end
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_high_level_energy).args[1])[:type] == :potential_energy
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_high_level_energy).args[1])[:calculator] == false
+    
+    expr_high_level_forces = quote
+        function AtomsCalculators.forces(system::AbstractSystem,
+                                                   calculator::HighLevelCalculator;
+                                                   kwargs...)
+        end
+    end
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_high_level_forces).args[1])[:type] == :forces
+    
+    expr_high_level_forces! = quote
+        function AtomsCalculators.forces!(system::AbstractSystem,
+                                                   calculator::HighLevelCalculator;
+                                                   kwargs...)
+        end
+    end
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_high_level_forces!).args[1])[:type] == :forces!
+    
+    expr_high_level_virial = quote
+        function AtomsCalculators.virial(system::AbstractSystem,
+                                                   calculator::HighLevelCalculator;
+                                                   kwargs...)
+        end
+    end
+    @test AtomsCalculators.determine_type_calculation(
+        Base.remove_linenums!(expr_high_level_virial).args[1])[:type] == :virial
+end
