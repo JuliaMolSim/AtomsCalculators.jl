@@ -5,121 +5,6 @@ using Unitful
 
 using AtomsCalculators.AtomsCalculatorsTesting
 
-@testset "AtomsCalculators.jl" begin
-    # Write your tests here.
-    struct MyType
-    end
-
-    struct MyOtherType
-    end
-
-    struct MyTypeC
-    end
-
-    AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
-        # we can ignore kwargs... or use them to tune the calculation
-        # or give extra information like pairlist
-    
-        # add your own definition here
-        return 0.0u"eV"
-    end
-    
-    AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
-        # we can ignore kwargs... or use them to tune the calculation
-        # or give extra information like pairlist
-    
-        # add your own definition here
-        return zeros(3,3) * u"eV"
-    end
-    
-    
-    AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::MyType; kwargs...)
-        # we can ignore kwargs... or use them to tune the calculation
-        # or give extra information like pairlist
-    
-        # add your own definition
-        return AtomsCalculators.zero_forces(system, calculator)
-    end
-    
-    AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::MyOtherType; kwargs...)
-        @assert length(f) == length(system)
-        # we can ignore kwargs... or use them to tune the calculation
-        # or give extra information like pairlist
-    
-        # add your own definition
-        for i in eachindex(f)
-            f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
-        end
-    
-        return f
-    end
-
-    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
-        ::AtomsCalculators.Energy, 
-        system, 
-        calculator::MyTypeC,
-        parameters=nothing,
-        state=nothing;
-        kwargs...
-    )
-        # we can ignore kwargs... or use them to tune the calculation
-        # or give extra information like pairlist
-    
-        # add your own definition here
-        return ( energy = 0.0u"eV", state = nothing )
-    end
-    
-    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
-        ::AtomsCalculators.Virial, 
-        system, 
-        calculator::MyTypeC,
-        parameters=nothing,
-        state=nothing;
-        kwargs...
-    )
-        # we can ignore kwargs... or use them to tune the calculation
-        # or give extra information like pairlist
-    
-        # add your own definition here
-        return ( virial = zeros(3,3) * u"eV", state = nothing )
-    end
-    
-    
-    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
-        ::AtomsCalculators.Forces, 
-        system, 
-        calculator::MyTypeC,
-        parameters=nothing,
-        state=nothing;
-        kwargs...
-    )
-        # we can ignore kwargs... or use them to tune the calculation
-        # or give extra information like pairlist
-    
-        # add your own definition
-        f = AtomsCalculators.zero_forces(system, calculator)
-        return ( forces = f, state = nothing )
-    end
-
-    hydrogen = isolated_system([
-    :H => [0, 0, 0.]u"Å",
-    :H => [0, 0, 1.]u"Å"
-    ])
-
-    test_potential_energy(hydrogen, MyType())
-    test_forces(hydrogen, MyType())
-    test_virial(hydrogen, MyType())
-    test_forces(hydrogen, MyOtherType())
-    
-    test_potential_energy(hydrogen, MyTypeC())
-    test_forces(hydrogen, MyTypeC())
-    test_virial(hydrogen, MyTypeC())
-
-    efv = AtomsCalculators.energy_forces_virial(hydrogen, MyType())
-    @test haskey(efv, :energy)
-    @test haskey(efv, :forces)
-    @test haskey(efv, :virial)
-end
 
 @testset "Parsing macro" begin
     expr_low_level_energy = quote
@@ -191,4 +76,87 @@ end
     end
     @test AtomsCalculators.determine_type_calculation(
         Base.remove_linenums!(expr_high_level_virial).args[1])[:type] == :virial
+end
+
+@testset "High-level calculator interface" begin
+    struct HighLevelCalculator end
+    struct HighLevelCalculatorAllocating end
+
+    AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::HighLevelCalculator; kwargs...)
+        return 0.0u"eV"
+    end
+    
+    AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::HighLevelCalculator; kwargs...)
+        return zeros(3,3) * u"eV"
+    end
+    
+    
+    AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::HighLevelCalculator; kwargs...)
+        return AtomsCalculators.zero_forces(system, calculator)
+    end
+    
+    AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::HighLevelCalculatorAllocating; kwargs...)
+        @assert length(f) == length(system)
+        for i in eachindex(f)
+            f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
+        end
+    
+        return f
+    end
+    
+    hydrogen = isolated_system([
+    :H => [0, 0, 0.]u"Å",
+    :H => [0, 0, 1.]u"Å"
+    ])
+
+    test_potential_energy(hydrogen, HighLevelCalculator())
+    test_forces(hydrogen, HighLevelCalculator())
+    test_virial(hydrogen, HighLevelCalculator())
+    test_forces(hydrogen, HighLevelCalculatorAllocating())
+    
+    test_potential_energy(hydrogen, HighLevelCalculator())
+    test_forces(hydrogen, HighLevelCalculator())
+    test_virial(hydrogen, HighLevelCalculator())
+end
+
+@testset "Low-level calculator interface" begin
+    struct LowLevelCalculator end
+
+    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+            ::AtomsCalculators.Energy,
+            system, calculator::LowLevelCalculator,
+            parameters, state;
+            kwargs...)
+        return (; :energy => 0.0u"eV", :state => nothing)
+    end
+    
+    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+            ::AtomsCalculators.Virial,
+            system, calculator::LowLevelCalculator,
+            parameters, state;
+            kwargs...)
+        return (; :virial => zeros(3,3) * u"eV", :state => nothing)
+    end
+    
+    
+    AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+            ::AtomsCalculators.Forces,
+            system, calculator::LowLevelCalculator,
+            parameters, state;
+            kwargs...)
+        return (; :forces => AtomsCalculators.zero_forces(system, calculator), :state => nothing)
+    end
+    
+    hydrogen = isolated_system([
+    :H => [0, 0, 0.]u"Å",
+    :H => [0, 0, 1.]u"Å"
+    ])
+
+    test_potential_energy(hydrogen, LowLevelCalculator())
+    test_forces(hydrogen, LowLevelCalculator())
+    test_virial(hydrogen, LowLevelCalculator())
+    
+    test_potential_energy(hydrogen, LowLevelCalculator())
+    test_forces(hydrogen, LowLevelCalculator())
+    test_virial(hydrogen, LowLevelCalculator())
 end

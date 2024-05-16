@@ -195,7 +195,7 @@ function generate_calculator_virial(calc_type)
 end
 
 
-# Generate high level calls from high-level ones.
+# Generate high level calls from low-level ones.
 # -----------------------------------------------
 # High level calls use the low level one with default parameters and state.
 
@@ -203,7 +203,7 @@ function generate_potential_energy(calc_type)
     q = quote 
         function AtomsCalculators.potential_energy(system, calculator::$calc_type; kwargs...)
             e = AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator,
-                                           parameters = nothing, state = nothing; kwargs...)
+                                           nothing, nothing; kwargs...)
             return e[:energy]
         end
     end
@@ -214,7 +214,7 @@ function generate_virial(calc_type)
     q = quote
         function AtomsCalculators.virial(system, calculator::$calc_type; kwargs...)
             v = AtomsCalculators.calculate(AtomsCalculators.Virial(), system, calculator,
-                                           parameters = nothing, state = nothing; kwargs...)
+                                           nothing, nothing; kwargs...)
             return v[:virial]
         end
     end
@@ -247,7 +247,7 @@ function generate_forces_from_calculator(calc_type)
     q1 = quote 
         function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
             f = AtomsCalculators.calculate(AtomsCalculators.Forces(), system, calculator,
-                                           parameters = nothing, state = nothing; kwargs...)
+                                           nothing, nothing; kwargs...)
             return f[:forces]
         end
     end
