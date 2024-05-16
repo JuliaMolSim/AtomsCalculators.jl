@@ -17,6 +17,12 @@ promote_force_type(::Any, ::Any) = SVector(1., 1., 1.) * u"eV/Å" |> typeof
 
 zero_forces(system, calc) = zeros( promote_force_type(system, calc), length(system) )
 
+get_state(::Any) = Missing
+get_parameters(::Any) = Missing
+
+set_state(::Any, ::Any) = nothing
+set_parameters(::Any, ::Any) = Missing
+
 ## Define combinations from basic calls
 
 function energy_forces(system, calculator; kwargs...)
