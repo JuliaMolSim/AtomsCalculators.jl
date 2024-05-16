@@ -65,5 +65,4 @@ AtomsCalculators.calculate(AtomsCalculators.Energy(), hydrogen, HighLevelCalcula
 AtomsCalculators.potential_energy(hydrogen, LowLevelCalculator(nothing))
 
 # Low-level call, implemented by the user.
-AtomsCalculators.calculate(AtomsCalculators.Energy(), hydrogen, LowLevelCalculator(nothing),
-                          state = 1.0)
+AtomsCalculators.calculate(AtomsCalculators.Energy(), hydrogen, LowLevelCalculator(nothing), 1.0)
