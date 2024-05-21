@@ -92,82 +92,94 @@ dirfdtest(F, dF, x, u; kwargs...) =
 
 
 
-# --------------------------- 
+# -------------------------------------------
+#  Interface code to perform FD tests on 
+#  systems with calculators 
+
+function _rattle(X, bb, r)
+   if r === false
+      return copy(X), [bb...]
+   end 
+   X1 = copy(X)
+   bb1 = [copy(bb)...]
+   for i = 1:length(X)
+      ui = randn(eltype(X)); ui /= norm(ui)
+      X1[i] += (rand() * r) * ui
+   end
+   for i = 1:length(bb) 
+      ui = randn(eltype(bb)); ui /= norm(ui)
+      bb1[i] += (rand() * r * norm(bb1[i])) * ui
+   end
+   return X1, bb1
+end
+
+
+function _fdtest_forces(calc, sys::AbstractSystem, verbose, rattle) 
+   X0, bb0 = _rattle(position(sys), bounding_box(sys), rattle)
+
+   _at(X) = FastSystem(bb0, 
+                       boundary_conditions(sys), 
+                       X, 
+                       atomic_symbol(sys), 
+                       atomic_number(sys), 
+                       atomic_mass(sys))
+
+   F = X -> potential_energy(_at(X), calc)
+   dF = X -> - forces(_at(X), calc)
+
+   println("Forces finite-difference test")
+   f_result = fdtest(F, dF, X0; verbose = verbose )
+   return f_result 
+end
+
+
+function _fdtest_virial(calc, sys::AbstractSystem, verbose, rattle)
+   X0, C0 = _rattle(position(sys), bounding_box(sys), rattle)
+
+   cvec0 = Vector(vcat(C0...))
+   uL = unit(eltype(cvec0))
+
+   function _atv(cvec) 
+      C = [ cvec[1:3], cvec[4:6], cvec[7:9] ] * uL 
+      Cmat = ustrip.([ cvec[1:3]'; cvec[4:6]'; cvec[7:9]' ])
+      C0mat = ustrip.([ C0[1]'; C0[2]'; C0[3]' ])
+      F = SMatrix{3, 3}(Cmat / C0mat)
+      X = Ref(F) .* X0 
+
+      return FastSystem(C, 
+                        boundary_conditions(sys), 
+                        X, 
+                        atomic_symbol(sys), 
+                        atomic_number(sys), 
+                        atomic_mass(sys))
+   end
+
+   F = cvec ->  ustrip(potential_energy(_atv(cvec), calc))
+   dF = cvec -> ustrip.(Vector( - virial(_atv(cvec), calc)[:]))
+
+   println("Virial finite-difference test")
+   v_result = fdtest(F, dF, ustrip.(cvec0); verbose = verbose )
+   return v_result 
+end
+
 
 function fdtest(calc, sys::AbstractSystem;
                 verbose = true, 
-                directional = (length(sys) <= 10), 
                 rattle = false, 
                 test_virial = true, 
                 test_forces = true, 
                 )
 
-   function rattle_positions!(X, r) 
-      for i = 1:length(X)
-         ui = randn(eltype(X))
-         ui /= norm(ui)
-         X[i] += (rand() * r) * randn(SVector)
-      end
-      return X 
+   if test_forces 
+      f_result = _fdtest_forces(calc, sys, verbose, rattle)
+   else 
+      f_result = missing 
    end
 
-   if test_forces 
-      X0 = copy(position(sys))
-      if (rattle != false) 
-         rattle_positions!(X0, rattle)
-      end
-
-      _at(_X) = FastSystem(bounding_box(sys), 
-                           boundary_conditions(sys), 
-                           _X, 
-                           atomic_symbol(sys), 
-                           atomic_number(sys), 
-                           atomic_mass(sys))
-
-      F = X -> potential_energy(_at(X), calc)
-      dF = X -> - forces(_at(X), calc)
-
-      println("Forces finite-difference test")
-      f_result = fdtest(F, dF, X0; verbose = verbose )
-   end 
-
    if test_virial
-      X0 = copy(position(sys))
-      C0 = [ bounding_box(sys)... ] 
-      if (rattle != false) 
-         rattle_positions!(X0, rattle)
-         for i = 1:3
-            ui = randn(eltype(C0)); ui /= norm(ui)
-            C0[i] += (rand() * rattle * norm(C0[i])) * ui 
-         end
-      end
-
-      cvec0 = Vector(vcat(C0...))
-      uL = unit(eltype(cvec0))
-
-      function _atv(cvec) 
-         C = [ cvec[1:3], cvec[4:6], cvec[7:9] ] * uL 
-         Cmat = ustrip.([ cvec[1:3]'; cvec[4:6]'; cvec[7:9]' ])
-         C0mat = ustrip.([ C0[1]'; C0[2]'; C0[3]' ])
-         F = SMatrix{3, 3}(Cmat \ C0mat)
-         X = Ref(F) .* X0 
-
-
-         return FastSystem(C, 
-                           boundary_conditions(sys), 
-                           X, 
-                           atomic_symbol(sys), 
-                           atomic_number(sys), 
-                           atomic_mass(sys))
-      end
-
-      F = cvec ->  ustrip(potential_energy(_atv(cvec), calc))
-      dF = cvec -> ustrip.(Vector( virial(_atv(cvec), calc)[:]))
-
-      @show cvec0 
-      
-      println("Virial finite-difference test")
-      v_result = fdtest(F, dF, ustrip.(cvec0); verbose = verbose )
+      v_result = _fdtest_virial(calc, sys, verbose, rattle)
+   else 
+      v_result = missing
    end
 
    return (f_result = f_result, v_result = v_result) 

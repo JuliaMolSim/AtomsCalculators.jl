@@ -47,7 +47,7 @@ module DemoPairCalc
       for i = 1:length(X), j = 1:length(X)
          if i != j 
             r = X[j] - X[i]
-            vir -= r * _dv(r)'
+            vir -= _dv(r) * r'
          end
       end
       return vir 
