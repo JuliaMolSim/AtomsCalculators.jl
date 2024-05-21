@@ -97,18 +97,17 @@ dirfdtest(F, dF, x, u; kwargs...) =
 #  systems with calculators 
 
 function _rattle(X, bb, r)
-   if r === false
-      return copy(X), [bb...]
-   end 
+   if r === false; return X, bb; end
    X1 = copy(X)
-   bb1 = [copy(bb)...]
+   TX = eltype(ustrip.(X)) 
+   bb1 = [bb...]
    for i = 1:length(X)
-      ui = randn(eltype(X)); ui /= norm(ui)
+      ui = randn(TX); ui /= norm(ui)
       X1[i] += (rand() * r) * ui
    end
    for i = 1:length(bb) 
-      ui = randn(eltype(bb)); ui /= norm(ui)
-      bb1[i] += (rand() * r * norm(bb1[i])) * ui
+      ui = randn(TX); ui /= norm(ui)
+      bb1[i] += (rand() * r) * ui
    end
    return X1, bb1
 end
@@ -127,7 +126,7 @@ function _fdtest_forces(calc, sys::AbstractSystem, verbose, rattle)
    F = X -> potential_energy(_at(X), calc)
    dF = X -> - forces(_at(X), calc)
 
-   println("Forces finite-difference test")
+   verbose && println("Forces finite-difference test")
    f_result = fdtest(F, dF, X0; verbose = verbose )
    return f_result 
 end
@@ -136,17 +135,17 @@ end
 function _fdtest_virial(calc, sys::AbstractSystem, verbose, rattle)
    X0, C0 = _rattle(position(sys), bounding_box(sys), rattle)
 
-   cvec0 = Vector(vcat(C0...))
-   uL = unit(eltype(cvec0))
+   # reference deformation is just the identify
+   F0 = [1.0 0.0 0.0 ; 0.0 1.0 0.0 ; 0.0 0.0 1.0]
+   f0 = F0[:] 
 
-   function _atv(cvec) 
-      C = [ cvec[1:3], cvec[4:6], cvec[7:9] ] * uL 
-      Cmat = ustrip.([ cvec[1:3]'; cvec[4:6]'; cvec[7:9]' ])
-      C0mat = ustrip.([ C0[1]'; C0[2]'; C0[3]' ])
-      F = SMatrix{3, 3}(Cmat / C0mat)
-      X = Ref(F) .* X0 
-
-      return FastSystem(C, 
+   # this implements a system where cell and positions are deformed according 
+   # to the deformation matrix F obtained from the vector fvec 
+   function _atv(fvec) 
+      F = reshape(fvec, (3,3))
+      bb = Ref(F) .* C0 # transform the cell 
+      X = Ref(F) .* X0 # transform the positions
+      return FastSystem(bb, 
                         boundary_conditions(sys), 
                         X, 
                         atomic_symbol(sys), 
@@ -154,15 +153,28 @@ function _fdtest_virial(calc, sys::AbstractSystem, verbose, rattle)
                         atomic_mass(sys))
    end
 
-   F = cvec ->  ustrip(potential_energy(_atv(cvec), calc))
-   dF = cvec -> ustrip.(Vector( - virial(_atv(cvec), calc)[:]))
+   F = fvec ->  ustrip(potential_energy(_atv(fvec), calc))
+   dF = fvec -> Vector( ( - ustrip.(virial(_atv(fvec), calc)) )[:] )
 
-   println("Virial finite-difference test")
-   v_result = fdtest(F, dF, ustrip.(cvec0); verbose = verbose )
+   verbose && println("Virial finite-difference test")
+   v_result = fdtest(F, dF, f0; verbose = verbose )
    return v_result 
 end
 
 
+"""
+```julia
+fdtest(calc, sys::AbstractSystem; kwargs...)
+```
+Performs a finite-difference test for a calculator on an atom system and 
+returns a named tuple with the results.
+
+### kwargs
+- `verbose=true` : print the results of the test
+- `rattle=false` : apply a random perturbation to the system before testing (to turn this on, set the amount of rattling, not `true`)
+- `test_virial=true` : test the virial
+- `test_forces=true` : test the forces
+"""
 function fdtest(calc, sys::AbstractSystem;
                 verbose = true, 
                 rattle = false, 

@@ -41,19 +41,18 @@ module DemoPairCalc
       return f
    end
 
-  
-  
    function _virial(X) 
       vir = @SMatrix zeros(3,3)
       for i = 1:length(X), j = 1:length(X)
          if i != j 
-            r = X[j] - X[i]
-            vir -= _dv(r) * r'
+            𝐫 = X[j] - X[i]
+            vir -= _dv(𝐫) * 𝐫'
          end
       end
       return vir 
    end
    
+
    # @generate_interface  ... not working as expected 
    potential_energy(sys, calc::AbstractPot; kwargs...) = 
         _energy(ustrip.(position(sys))) * uE 
@@ -72,7 +71,9 @@ module DemoPairCalc
 
 
    function random_system(Nat)
-      bb = [ SA[1.0,0.0,0.0], SA[0.0,1.0,0.0], SA[0.0,0.0,1.0]]*uL
+      bb = [ SA[1.0,0.0,0.0] + 0.1 * rand(SVector{3, Float64}),
+             SA[0.0,1.0,0.0] + 0.1 * rand(SVector{3, Float64}),
+             SA[0.0,0.0,1.0] + 0.1 * rand(SVector{3, Float64}), ] * uL
       X = [ Atom(1, rand(SVector{3, Float64})*uL, missing) for _ = 1:5 ]
       periodic_system(X, bb)
    end
@@ -84,23 +85,25 @@ D = DemoPairCalc
 
 ##
 
-Nat = rand(4:8) 
-sys = D.random_system(Nat)
-calc = D.Pot()
-calcFerr = D.PotFerr()
-calcVerr = D.PotVerr()
+for rattle in (false, 0.1u"Å")
+   Nat = rand(4:8) 
+   sys = D.random_system(Nat)
+   calc = D.Pot()
+   calcFerr = D.PotFerr()
+   calcVerr = D.PotVerr()
 
-result = ACT.fdtest(calc, sys)
-@test result.f_result
-@test result.v_result
+   result = ACT.fdtest(calc, sys; rattle=rattle)
+   @test result.f_result
+   @test result.v_result
 
-result = ACT.fdtest(calcFerr, sys)
-@test !result.f_result
-@test result.v_result
+   result = ACT.fdtest(calcFerr, sys; rattle=rattle)
+   @test !result.f_result
+   @test result.v_result
 
-result = ACT.fdtest(calcVerr, sys)
-@test result.f_result
-@test !result.v_result
+   result = ACT.fdtest(calcVerr, sys; rattle=rattle)
+   @test result.f_result
+   @test !result.v_result
+end
 
 ##
 
