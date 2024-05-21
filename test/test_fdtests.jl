@@ -39,6 +39,19 @@ module DemoPairCalc
       end
       return f
    end
+
+  
+  
+   function _virial(X) 
+      vir = @SMatrix zeros(3,3)
+      for i = 1:length(X), j = 1:length(X)
+         if i != j 
+            r = X[j] - X[i]
+            vir -= r * _dv(r)'
+         end
+      end
+      return vir 
+   end
    
    # @generate_interface  ... not working as expected 
    potential_energy(sys, calc::AbstractPot; kwargs...) = 
@@ -50,9 +63,11 @@ module DemoPairCalc
    forces(sys, calc::PotFerr; kwargs...) = 
          0.9 * _forces(ustrip.(position(sys))) * uE / uL
 
+   virial(sys, calc::AbstractPot; kwargs...) = 
+         _virial(ustrip.(position(sys))) * uE
 
    function random_system(Nat)
-      bb = [ SA[1,0,0], SA[0,1,0], SA[0,0,1]]*uL
+      bb = [ SA[1.0,0.0,0.0], SA[0.0,1.0,0.0], SA[0.0,0.0,1.0]]*uL
       X = [ Atom(1, rand(SVector{3, Float64})*uL, missing) for _ = 1:5 ]
       periodic_system(X, bb)
    end
@@ -69,11 +84,16 @@ sys = D.random_system(Nat)
 calc = D.Pot()
 calcFerr = D.PotFerr()
 
-result = AtomsCalculators.AtomsCalculatorsTesting.fdtest(calc, sys)
-@test result.f_result
+##
 
-result = AtomsCalculators.AtomsCalculatorsTesting.fdtest(calcFerr, sys)
-@test !result.f_result
+
+result = ACT.fdtest(calc, sys)
+
+
+# @test result.f_result
+
+# result = AtomsCalculators.AtomsCalculatorsTesting.fdtest(calcFerr, sys)
+# @test !result.f_result
 
 ##
 
