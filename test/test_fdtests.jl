@@ -16,6 +16,7 @@ module DemoPairCalc
 
    struct Pot <: AbstractPot end 
    struct PotFerr <: AbstractPot end 
+   struct PotVerr <: AbstractPot end 
 
    const uE = u"eV" 
    const uL = u"Å"
@@ -57,14 +58,18 @@ module DemoPairCalc
    potential_energy(sys, calc::AbstractPot; kwargs...) = 
         _energy(ustrip.(position(sys))) * uE 
 
-   forces(sys, calc::Pot; kwargs...) = 
+   forces(sys, calc::AbstractPot; kwargs...) = 
          _forces(ustrip.(position(sys))) * uE / uL
+
+   virial(sys, calc::AbstractPot; kwargs...) = 
+         _virial(ustrip.(position(sys))) * uE
 
    forces(sys, calc::PotFerr; kwargs...) = 
          0.9 * _forces(ustrip.(position(sys))) * uE / uL
 
-   virial(sys, calc::AbstractPot; kwargs...) = 
-         _virial(ustrip.(position(sys))) * uE
+   virial(sys, calc::PotVerr; kwargs...) = 
+         0.9 * _virial(ustrip.(position(sys))) * uE
+
 
    function random_system(Nat)
       bb = [ SA[1.0,0.0,0.0], SA[0.0,1.0,0.0], SA[0.0,0.0,1.0]]*uL
@@ -83,17 +88,19 @@ Nat = rand(4:8)
 sys = D.random_system(Nat)
 calc = D.Pot()
 calcFerr = D.PotFerr()
-
-##
-
+calcVerr = D.PotVerr()
 
 result = ACT.fdtest(calc, sys)
+@test result.f_result
+@test result.v_result
 
+result = ACT.fdtest(calcFerr, sys)
+@test !result.f_result
+@test result.v_result
 
-# @test result.f_result
-
-# result = AtomsCalculators.AtomsCalculatorsTesting.fdtest(calcFerr, sys)
-# @test !result.f_result
+result = ACT.fdtest(calcVerr, sys)
+@test result.f_result
+@test !result.v_result
 
 ##
 
