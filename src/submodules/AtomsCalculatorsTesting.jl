@@ -12,6 +12,9 @@ export test_energy_forces
 export test_energy_forces_virial
 
 
+include("fdtests.jl")
+
+
 """
     test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, rtol=1e8, kwargs...)
 
