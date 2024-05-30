@@ -30,6 +30,8 @@ The calculator is expected to work without kwargs.
 """
 function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
     @testset "Test forces for $(typeof(calculator))" begin
+        parameters = nothing
+        state = nothing
         ftype = something(
             force_eltype, 
             AtomsCalculators.promote_force_type(sys, calculator)
@@ -56,7 +58,8 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         @test all( f_nonallocating .- 2f  ) do Δf # non-allocating is additive and called twice
             isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
         end
-        fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
+        fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator;
+                                        parameters, state, kwargs...)
         @test isa(fc, NamedTuple)
         @test haskey(fc, :forces)
         @test all( f .- fc[:forces] ) do Δf  # f ≈ fc[:forces]
@@ -83,12 +86,16 @@ The calculator is expected to work without kwargs.
 """
 function test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
     @testset "Test potential_energy for $(typeof(calculator))" begin
+        parameters = nothing
+        state = nothing
         e = AtomsCalculators.potential_energy(sys, calculator; kwargs...)
         @test typeof(e) <: Number
         @test dimension(e) == dimension(u"J")
         e2 = AtomsCalculators.potential_energy(sys, calculator; dummy_kword6594254=1, kwargs...)
+
         @test e ≈ e2 rtol=rtol
-        ec = AtomsCalculators.calculate(AtomsCalculators.Energy(), sys, calculator; kwargs...)
+        ec = AtomsCalculators.calculate(AtomsCalculators.Energy(), sys, calculator;
+                                        parameters, state, kwargs...)
         @test isa(ec, NamedTuple)
         @test haskey(ec, :energy)
         @test e ≈ ec[:energy] rtol=rtol
@@ -112,6 +119,8 @@ The calculator is expected to work without kwargs.
 """
 function test_virial(sys, calculator; rtol=1e8, kwargs...)
     @testset "Test virial for $(typeof(calculator))" begin
+        parameters = nothing
+        state = nothing
         v = AtomsCalculators.virial(sys, calculator; kwargs...)
         @test typeof(v) <: AbstractMatrix
         @test eltype(v) <: Number
@@ -120,8 +129,10 @@ function test_virial(sys, calculator; rtol=1e8, kwargs...)
         l = (length ∘ position)(sys,1) 
         @test size(v) == (l,l) # allow different dimensions than 3
         v2 = AtomsCalculators.virial(sys, calculator; dummy_kword6594254=1, kwargs...)
+
         @test all( isapprox.(v, v2; rtol=rtol ) )
-        vc = AtomsCalculators.calculate(AtomsCalculators.Virial(), sys, calculator; kwargs...)
+        vc = AtomsCalculators.calculate(AtomsCalculators.Virial(), sys, calculator;
+                                        parameters, state, kwargs...)
         @test isa(vc, NamedTuple)
         @test haskey(vc, :virial)
         @test all( isapprox(v, vc[:virial], rtol=rtol ) )
