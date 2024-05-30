@@ -113,11 +113,8 @@ end
     test_potential_energy(hydrogen, HighLevelCalculator())
     test_forces(hydrogen, HighLevelCalculator())
     test_virial(hydrogen, HighLevelCalculator())
+    test_energy_forces_virial(hydrogen, HighLevelCalculator())
     test_forces(hydrogen, HighLevelCalculatorAllocating())
-    
-    test_potential_energy(hydrogen, HighLevelCalculator())
-    test_forces(hydrogen, HighLevelCalculator())
-    test_virial(hydrogen, HighLevelCalculator())
 end
 
 @testset "Low-level calculator interface" begin
@@ -126,7 +123,7 @@ end
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
             ::AtomsCalculators.Energy,
             system, calculator::LowLevelCalculator,
-            parameters, state;
+            parameters=nothing, state=nothing;
             kwargs...)
         return (; :energy => 0.0u"eV", :state => nothing)
     end
@@ -134,7 +131,7 @@ end
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
             ::AtomsCalculators.Virial,
             system, calculator::LowLevelCalculator,
-            parameters, state;
+            parameters=nothing, state=nothing;
             kwargs...)
         return (; :virial => zeros(3,3) * u"eV", :state => nothing)
     end
@@ -143,7 +140,7 @@ end
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
             ::AtomsCalculators.Forces,
             system, calculator::LowLevelCalculator,
-            parameters, state;
+            parameters=nothing, state=nothing;
             kwargs...)
         return (; :forces => AtomsCalculators.zero_forces(system, calculator), :state => nothing)
     end
@@ -156,19 +153,9 @@ end
     test_potential_energy(hydrogen, LowLevelCalculator())
     test_forces(hydrogen, LowLevelCalculator())
     test_virial(hydrogen, LowLevelCalculator())
-    
-    test_potential_energy(hydrogen, LowLevelCalculator())
-    test_forces(hydrogen, LowLevelCalculator())
-    test_virial(hydrogen, LowLevelCalculator())
-            
-    test_energy_forces_virial(hydrogen, MyType())
-    test_forces(hydrogen, MyOtherType())
-    
-    test_potential_energy(hydrogen, MyTypeC())
-    test_forces(hydrogen, MyTypeC())
-    test_virial(hydrogen, MyTypeC())
+    test_energy_forces_virial(hydrogen, LowLevelCalculator())
 
-    efv = AtomsCalculators.energy_forces_virial(hydrogen, MyType())
+    efv = AtomsCalculators.energy_forces_virial(hydrogen, LowLevelCalculator())
     @test haskey(efv, :energy)
     @test haskey(efv, :forces)
     @test haskey(efv, :virial)
