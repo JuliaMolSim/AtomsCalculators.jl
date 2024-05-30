@@ -236,7 +236,7 @@ function generate_nonallocating_forces(calc_type)
     q = quote
             function AtomsCalculators.forces!(F, system, calculator::$calc_type; kwargs...)
             @assert length(F) == length(system)
-            F .= AtomsCalculators.forces(system, calculator; kwargs...)
+            F .+= AtomsCalculators.forces(system, calculator; kwargs...)
             return F
         end
     end

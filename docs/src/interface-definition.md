@@ -70,7 +70,6 @@ Outputs for the functions need to have following properties
 - Virial is a square matrix (3x3 in 3D) that has units of force times length or energy
 - Calculate methods return a [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple) that uses keys `:energy`, `:forces` and `:virial` to identify the results, which have the types defined above, and additionally returns the updated `:state`.
 
-
 ## Implementing the interface
 
 You can either implement both of the calls e.g. for energy
@@ -178,7 +177,8 @@ AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::Abstra
 
     # add your own definition
     for i in eachindex(f)
-        f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
+        # forces! adds to the force array
+        f[i] += zero(AtomsCalculators.promote_force_type(system, calculator))
     end
 
     return f
@@ -225,11 +225,13 @@ The type of the output can be [NamedTuple](https://docs.julialang.org/en/v1/base
 
 ## Testing Function Calls
 
-We have implemented function calls to help you testing the API. There is one call for each type of calls 
+We have implemented function calls to help you testing the API. There is one call for each type of calls
 
 - `test_potential_energy` to test potential_energy call
 - `test_forces` to test both allocating and non-allocating force calls
 - `test_virial` to test virial call
+- `test_energy_forces` to test both potential energy and force calls
+- `test_energy_forces_virial` to test everything 
 
 To get these access to these functions you need to call
 
@@ -254,6 +256,12 @@ test_virial(hydrogen, MyType())
 
 test_forces(hydrogen, MyOtherType()) # this works
 test_virial(hydrogen, MyOtherType()) # this will fail
+
+# If you have energy and forces implemented use this over others
+test_energy_forces(hydrogen, MyType())
+
+# If you have energy, forces and virial implemented use this others
+test_energy_forces_virial(hydrogen, MyType())
 ```
 
 *It is recommended that you use the test functions to test that your implementation supports the API fully!*

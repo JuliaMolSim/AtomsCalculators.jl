@@ -98,7 +98,8 @@ end
     AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::HighLevelCalculatorAllocating; kwargs...)
         @assert length(f) == length(system)
         for i in eachindex(f)
-            f[i] = zero(AtomsCalculators.promote_force_type(system, calculator))
+            # forces! adds to the force array
+            f[i] += zero(AtomsCalculators.promote_force_type(system, calculator))
         end
     
         return f
@@ -159,4 +160,16 @@ end
     test_potential_energy(hydrogen, LowLevelCalculator())
     test_forces(hydrogen, LowLevelCalculator())
     test_virial(hydrogen, LowLevelCalculator())
+            
+    test_energy_forces_virial(hydrogen, MyType())
+    test_forces(hydrogen, MyOtherType())
+    
+    test_potential_energy(hydrogen, MyTypeC())
+    test_forces(hydrogen, MyTypeC())
+    test_virial(hydrogen, MyTypeC())
+
+    efv = AtomsCalculators.energy_forces_virial(hydrogen, MyType())
+    @test haskey(efv, :energy)
+    @test haskey(efv, :forces)
+    @test haskey(efv, :virial)
 end
