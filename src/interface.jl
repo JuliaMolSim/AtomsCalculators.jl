@@ -1,6 +1,17 @@
 
+"""
+`Energy` : a `calculate` property to calculate the potential energy
+"""
 struct Energy end
+
+"""
+`Forces` : a `calculate` property to calculate the forces
+"""
 struct Forces end
+
+"""
+`Virial` : a `calculate` property to calculate the virial 
+"""
 struct Virial end
 
 """

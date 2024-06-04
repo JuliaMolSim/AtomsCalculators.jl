@@ -53,8 +53,8 @@ to the `calculate` function together with `parameters` and `state`. All calculat
 
 ### General structure of the low-level interface 
 
-The general usage of the `calculate` function is
-- [`calculate(property, sys, calc, ps, st; kwargs...)](@ref)
+The low level interface is built around a `calculate` function 
+- [`calculate(property, sys, calc, ps, st; kwargs...)`](@ref)
 where,
 - `property` is the property to be computed e.g. `PotentialEnergy()`,
 - `sys` is an system, 
@@ -62,19 +62,33 @@ where,
 - `ps` either `nothing` or a nested `NamedTuple` storing the calculator parameters,
 - `st` either `nothing` or a nested `NamedTuple` storing the calculator state
 
-The return type is always a `NamedTuple` with keys indicating the name of the property being computed. The content of this `NamedTuple` is not required to be restricted to the requested property (or, properties - see below). 
+Irrespective of which property is required, the return type is *always* a `NamedTuple` with keys indicating the name of properties being computed. The content of this `NamedTuple` is not required to be restricted to the requested property (or, properties - more on this below). 
 
-To manage parameters and state, `AtomsCalculators` provides prototypes that must be overloaded: 
+To manage parameters and state, `AtomsCalculators` provides prototypes that must be overloaded:
 - [`get_state(calc)`](@ref)
 - [`set_state!(calc)`](@ref)
 - [`get_parameters(calc)`](@ref)
 - [`set_parameters!(calc)`](@ref)
+This functionality is somewhat separate from Lux' 
+```julia
+ps, st = Lux.setup(rng, model)
+ps = LuxCore.initparameters(rng, model)
+```
+The difference is that `Lux.setup` initializes parameters, whereas, `*_state` and `*_parameters` is intended to read and write existing (already fitted) parameters. 
+In addition, a calculator need not implement `LuxCore.initparams` and `LuxCore.initstate`, but it has the option to do so. 
 
 ### Molecular mechanics with the low-level interface 
 
+The three basic properties to perform molecular mechanics simulations are energy, forces and virials, defined through
+- [`Energy()`](@ref)
+- [`Forces()`](@ref)
+- [`Virial()`](@ref)
+
+With these properties, the following calling conventions are analogous: 
 - `calculate(Energy(), sys, calc, ps, st)` is analogous to `potential_energy(sys, calc)`
 - `calculate(Forces(), sys, calc, ps, st)` is analogous to `forces(sys, calc)`
 - `calculate(Virial(), sys, calc, ps, st)` is analogous to `virial(sys, calc)`
+
 
 ### Multiple properties 
 
