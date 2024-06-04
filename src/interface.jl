@@ -19,11 +19,13 @@ function forces end
 function forces! end 
 
 """
-`virial(sys, calc; kwargs...)::SMatrix{3,3,Unitful.Energy}`
+`virial(sys, calc; kwargs...)::SMatrix{3,3,<:Unitful.Energy}`
 """
 function virial end 
 
-
+"""
+`calculate(propertie, sys, calc; kwargs...) -> NamedTuple`
+"""
 function calculate end
 
 """
@@ -74,11 +76,35 @@ zero_virial(system, calc) =
         zero( SMatrix{3,3,typeof(zero_energy(system, calc))} )
 
 
-get_state(::Any) = missing
-get_parameters(::Any) = missing
+"""
+`get_state(calc) -> NamedTuple`
+"""
+get_state(::Any) = NamedTuple()
 
-set_state(::Any, ::Any) = nothing
-set_parameters(::Any, ::Any) = nothing
+"""
+`get_parameters(calc) -> NamedTuple`
+"""
+get_parameters(::Any) = NamedTuple() 
+
+"""
+`set_state(calc, state) -> newcalc`
+"""
+function set_state end
+
+"""
+`set_state!(calc, state) -> state`
+"""
+function set_state! end
+
+"""
+`set_parameters(calc, parameters) -> newcalc`
+"""
+function set_parameters end 
+
+"""
+`set_parameters!(calc, parameters) -> calc`
+"""
+function set_parameters! end 
 
 ## Define combinations from basic calls
 
