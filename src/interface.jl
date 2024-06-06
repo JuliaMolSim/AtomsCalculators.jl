@@ -98,24 +98,14 @@ get_state(::Any) = NamedTuple()
 get_parameters(::Any) = NamedTuple() 
 
 """
-`set_state(calc, state) -> newcalc`
-"""
-function set_state end
-
-"""
 `set_state!(calc, state) -> state`
 """
-function set_state! end
-
-"""
-`set_parameters(calc, parameters) -> newcalc`
-"""
-function set_parameters end 
+set_state!(calc, st) = calc 
 
 """
 `set_parameters!(calc, parameters) -> calc`
 """
-function set_parameters! end 
+set_parameters!(calc, ps) = calc
 
 ## Define combinations from basic calls
 
