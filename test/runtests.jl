@@ -2,6 +2,7 @@ using AtomsBase
 using AtomsCalculators
 using Test
 using Unitful
+using UnitfulAtomic
 
 using AtomsCalculators.AtomsCalculatorsTesting
 
@@ -82,6 +83,13 @@ end
     struct HighLevelCalculator end
     struct HighLevelCalculatorAllocating end
 
+    function AtomsCalculators.energy_unit(::Any)
+        u"hartree"
+    end 
+    function AtomsCalculators.length_unit(::Any)
+        u"bohr"
+    end 
+    
     AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::HighLevelCalculator; kwargs...)
         return 0.0u"eV"
     end
@@ -119,6 +127,13 @@ end
 
 @testset "Low-level calculator interface" begin
     struct LowLevelCalculator end
+
+    function AtomsCalculators.energy_unit(::Any)
+        u"hartree"
+    end 
+    function AtomsCalculators.length_unit(::Any)
+        u"bohr"
+    end 
 
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
             ::AtomsCalculators.Energy,
