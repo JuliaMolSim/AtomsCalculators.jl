@@ -83,10 +83,10 @@ end
     struct HighLevelCalculator end
     struct HighLevelCalculatorAllocating end
 
-    function AtomsCalculators.energy_unit(::Any)
+    function AtomsCalculators.energy_unit(::Union{HighLevelCalculator,HighLevelCalculatorAllocating})
         u"hartree"
     end 
-    function AtomsCalculators.length_unit(::Any)
+    function AtomsCalculators.length_unit(::Union{HighLevelCalculator,HighLevelCalculatorAllocating})
         u"bohr"
     end 
     
@@ -128,10 +128,10 @@ end
 @testset "Low-level calculator interface" begin
     struct LowLevelCalculator end
 
-    function AtomsCalculators.energy_unit(::Any)
+    function AtomsCalculators.energy_unit(::LowLevelCalculator)
         u"hartree"
     end 
-    function AtomsCalculators.length_unit(::Any)
+    function AtomsCalculators.length_unit(::LowLevelCalculator)
         u"bohr"
     end 
 
