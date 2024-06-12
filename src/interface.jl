@@ -35,7 +35,7 @@ function forces! end
 function virial end 
 
 """
-`calculate(propertie, sys, calc; kwargs...) -> NamedTuple`
+`calculate(properties, sys, calc; kwargs...) -> NamedTuple`
 """
 function calculate end
 
@@ -56,6 +56,8 @@ force_unit(calc) = energy_unit(calc) / length_unit(calc)
 
 """
 `_fltype(system)` : floating point type used by the calculator
+
+This is an internal helper function and not considered part of the public API. 
 """
 _fltype(system) = typeof(ustrip(position(system, 1)[1]))
 
@@ -88,22 +90,30 @@ zero_virial(system, calc) =
 
 
 """
-`get_state(calc) -> NamedTuple`
+`get_state(calc) -> NamedTuple` or `ComponentArray`
 """
 get_state(::Any) = NamedTuple()
 
 """
-`get_parameters(calc) -> NamedTuple`
+`get_parameters(calc) -> NamedTuple` or `ComponentArray`
 """
 get_parameters(::Any) = NamedTuple() 
 
 """
-`set_state!(calc, state) -> state`
+`set_state!(calc, state) -> calc_new`
+
+The returned `calc_new` may be a mutated `calc` or a new object. The caller 
+should not assume that `calc_new` is the same object as `calc`. This allows 
+for non-mutating implementations of `set_state!`.
 """
 set_state!(calc, st) = calc 
 
 """
-`set_parameters!(calc, parameters) -> calc`
+`set_parameters!(calc, parameters) -> calc_new`
+
+The returned `calc_new` may be a mutated `calc` or a new object. The caller 
+should not assume that `calc_new` is the same object as `calc`. This allows 
+for non-mutating implementations of `set_parameters!`.
 """
 set_parameters!(calc, ps) = calc
 

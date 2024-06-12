@@ -74,25 +74,26 @@ Irrespective of which property is required, the return type is *always* a `Named
 ### Calculator State and Parameters
 
 To manage parameters and state, `AtomsCalculators` provides prototypes that can be overloaded:
-- [`get_state(calc)`](@ref) : return a `NamedTuple` or `ComponentArray` containing the entire mutable state of the calculator
-- [`set_state!(calc, st)`](@ref) : set the state of the calculator, may be mutating or non-mutating (see below!)
-- [`get_parameters(calc)`](@ref) : return a `NamedTuple` or `ComponentArray` containing all parameters. 
-- [`set_parameters!(calc, ps)`](@ref) : set the parameters of the calculator, may be mutating or non-mutating (see below!)
+- [`get_state(calc)`](@ref) : return a `NamedTuple` or `ComponentArray` containing the entire mutable state of the calculator;
+- [`set_state!(calc, st)`](@ref) : set the state of the calculator, may be mutating or non-mutating;
+- [`get_parameters(calc)`](@ref) : return a `NamedTuple` or `ComponentArray` containing all parameters;
+- [`set_parameters!(calc, ps)`](@ref) : set the parameters of the calculator, may be mutating or non-mutating.
 This functionality is somewhat separate from Lux' 
 ```julia
 ps, st = Lux.setup(rng, model)
 ps = LuxCore.initparameters(rng, model)
 ```
 The difference is that `Lux.setup` initializes parameters, whereas, `*_state` and `*_parameters` is intended to read and write existing (already fitted) parameters. 
-In addition, a calculator need not implement `LuxCore.initparams` and `LuxCore.initstate`, but it has the option to do so. 
+In addition, a calculator need not implement `LuxCore.initparams` and `LuxCore.initstate`, but it has the option to do so.
 
 The default implementations for `*_state` and `*_parameters` assume a stateless and parameter-free calculator.
 
-The calls `set_state!` and `set_parameters!` are *may* be mutating (hence the !) but need not be. The correct usage is therefore 
+The calls `set_state!` and `set_parameters!` may be mutating (hence the !) but need not be mutating. The correct usage is therefore 
 ```julia
 new_calc = set_state!(calc, st) 
 new_calc = set_parameters!(calc, ps)
 ```
+In general, the caller should not assume that `new_calc` and `calc` are references to the same object.
 
 ### Molecular mechanics with the low-level interface 
 
