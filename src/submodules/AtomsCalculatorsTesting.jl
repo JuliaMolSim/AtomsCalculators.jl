@@ -45,7 +45,10 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         @test typeof(f_matrix) <: AbstractMatrix
         @test eltype(f_matrix) <: Number
         @test size(f_matrix) == (3, length(f))
-        @test all( AtomsCalculators.forces(sys, calculator; dummy_kword659234=1, kwargs...) .≈ f )
+        f_dummy = AtomsCalculators.forces(sys, calculator; dummy_kword659234=1, kwargs...)
+        @test all( f_dummy .- f  ) do Δf # f_dummy ≈ f
+            isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
+        end
         f_cpu_array = Array(f)  # Allow GPU output
         @test dimension(f_cpu_array[1][1]) == dimension(u"N")
         @test length(f_cpu_array[1]) == (length ∘ position)(sys,1)
