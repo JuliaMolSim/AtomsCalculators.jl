@@ -28,7 +28,7 @@ A minimal implementation of an `AtomsCalculators` calculator should provide (how
 #### Remarks 
 
 - Methods must accept keyword arguments, but they can be ignored. For a discussion of some standard keyword arguments that a calculator may wish to support see [Reserved Keyword Arguments](@ref keywordargs). 
-- If a calculator does not implement a function, then it can simply choose to provide that method. A simulator that relies on that function will then simply fail. For example a QM/MM force mixing scheme may be unable to provide `potential_energy`. 
+- If a calculator does not implement a function, then it can simply choose not to provide that method. A simulator that relies on that function will then simply fail. For example a QM/MM force mixing scheme may be unable to provide `potential_energy`. 
 
 ### Extended high-level interface 
 
@@ -55,7 +55,7 @@ To avoid writing too much boiler-plate code to support the full interface, see t
 ## Low-Level Interface 
 
 All high-level functionality listed above can also be accessed via "low-level" calls with user-specifiable parameters through `calculate` methods. The low-level `calculate` interface follows the [Lux](https://lux.csail.mit.edu/stable/) model for parameters and state. This means that when calculations are performed with the `calculate` interface calculators **must act as immutable** structs that are passed 
-to the `calculate` function together with `parameters` and `state`. All calculations then return an output and a state. Note we only require calculators **act** immutable but not to be technically immutable. For example the same calculator can implement the high-level interface and then mutate an internal state.
+to the `calculate` function together with `parameters` and `state`. All calculations then return an output and a state. Note, we only require calculators **act** immutable but not to be technically immutable. For example the same calculator can implement the high-level interface and then mutate an internal state.
 
 ### General structure of the low-level interface 
 
@@ -78,7 +78,7 @@ To manage parameters and state, `AtomsCalculators` provides prototypes that can 
 - [`set_state!(calc, st)`](@ref) : set the state of the calculator, may be mutating or non-mutating;
 - [`get_parameters(calc)`](@ref) : return a `NamedTuple` or `ComponentArray` containing all parameters;
 - [`set_parameters!(calc, ps)`](@ref) : set the parameters of the calculator, may be mutating or non-mutating.
-This functionality is somewhat separate from Lux' 
+This functionality is somewhat separate from Lux
 ```julia
 ps, st = Lux.setup(rng, model)
 ps = LuxCore.initparameters(rng, model)
@@ -143,5 +143,5 @@ If such an extension could be of value to a broader developer or user base, then
 The following keyword arguments are used consistently throughout the AtomsBase / AtomsCalculators ecosystem. 
 
 - `domain` : the domain over which to evaluate an energy, normally used for site potentials where partial energies can be evaluated. Calculators that do not provide this functionality may wish to throw an error is a partial energy is requested to avoid silent bugs. 
-- `executor` : a label or type specifying how to execute the calcualtor (e.g. in serial, multi-threaded, distributed)
+- `executor` : a label or type specifying how to execute the calculator (e.g. in serial, multi-threaded, distributed)
 - `nlist` : a possibly precomputed neighbourlist
