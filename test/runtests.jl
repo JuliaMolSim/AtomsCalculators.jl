@@ -174,4 +174,17 @@ end
     @test haskey(efv, :energy)
     @test haskey(efv, :forces)
     @test haskey(efv, :virial)
+    
+    # Test Combined calculator call
+    combined = (
+        AtomsCalculators.Energy(),
+        AtomsCalculators.Forces(),
+        AtomsCalculators.Virial()
+    )
+
+    com = AtomsCalculators.calculate(combined, hydrogen, LowLevelCalculator())
+    @test isa(com, NamedTuple)
+    @test haskey(com, :energy)
+    @test haskey(com, :forces)
+    @test haskey(com, :virial)
 end

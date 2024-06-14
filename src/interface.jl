@@ -168,3 +168,15 @@ function energy_forces_virial!(f::AbstractVector, system, calculator; kwargs...)
         :virial => v
     )
 end 
+
+
+function calculate(properties::Tuple, sys, calc, state=nothing, params=nothing; kwargs...)
+    out = Dict{Symbol, Any}()
+    for property in properties
+        tmp = calculate(property, sys, calc, state, params; kwargs...)
+        for (k,v) in pairs(tmp)
+            out[k] = v
+        end
+    end
+    return NamedTuple(out)
+end
