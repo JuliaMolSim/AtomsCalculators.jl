@@ -91,11 +91,11 @@ end
     end 
     
     AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::HighLevelCalculator; kwargs...)
-        return 0.0u"eV"
+        return 0.0u"hartree"
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::HighLevelCalculator; kwargs...)
-        return zeros(3,3) * u"eV"
+        return zeros(3,3) * u"hartree"
     end
     
     
@@ -140,7 +140,7 @@ end
             system, calculator::LowLevelCalculator,
             parameters=nothing, state=nothing;
             kwargs...)
-        return (; :energy => 0.0u"eV", :state => nothing)
+        return (; :energy => 0.0u"hartree", :state => nothing)
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
@@ -148,7 +148,7 @@ end
             system, calculator::LowLevelCalculator,
             parameters=nothing, state=nothing;
             kwargs...)
-        return (; :virial => zeros(3,3) * u"eV", :state => nothing)
+        return (; :virial => zeros(3,3) * u"hartree", :state => nothing)
     end
     
     

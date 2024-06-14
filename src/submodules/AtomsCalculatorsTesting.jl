@@ -52,6 +52,7 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         f_cpu_array = Array(f)  # Allow GPU output
         @test dimension(f_cpu_array[1][1]) == dimension(u"N")
         @test length(f_cpu_array[1]) == (length ∘ position)(sys,1)
+        @test unit(f_cpu_array[1][1]) == AtomsCalculators.force_unit(calculator)
         f_nonallocating = zeros(ftype, length(sys))
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; kwargs...)
         @test all( f_nonallocating .- f  ) do Δf # f_nonallocating ≈ f
@@ -94,6 +95,7 @@ function test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
         e = AtomsCalculators.potential_energy(sys, calculator; kwargs...)
         @test typeof(e) <: Number
         @test dimension(e) == dimension(u"J")
+        @test unit(e) == AtomsCalculators.energy_unit(calculator)
         e2 = AtomsCalculators.potential_energy(sys, calculator; dummy_kword6594254=1, kwargs...)
 
         @test e ≈ e2 rtol=rtol
@@ -129,6 +131,7 @@ function test_virial(sys, calculator; rtol=1e8, kwargs...)
         @test eltype(v) <: Number
         v_cpu_array = Array(v) # Allow GPU arrays
         @test dimension(v_cpu_array[1,1]) == dimension(u"J")
+        @test unit(v_cpu_array[1,1]) == AtomsCalculators.energy_unit(calculator)
         l = (length ∘ position)(sys,1) 
         @test size(v) == (l,l) # allow different dimensions than 3
         v2 = AtomsCalculators.virial(sys, calculator; dummy_kword6594254=1, kwargs...)
