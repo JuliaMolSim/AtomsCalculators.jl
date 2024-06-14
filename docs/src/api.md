@@ -4,5 +4,5 @@
 ```
 
 ```@autodocs
-Modules = [AtomsCalculators, AtomsCalculators.AtomsCalculatorsTesting]
+Modules = [AtomsCalculators, AtomsCalculators.AtomsCalculatorsTesting, AtomsCalculators.Testing]
 ```
