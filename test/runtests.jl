@@ -118,11 +118,7 @@ end
     :H => [0, 0, 1.]u"Å"
     ])
 
-    test_potential_energy(hydrogen, HighLevelCalculator())
-    test_forces(hydrogen, HighLevelCalculator())
-    test_virial(hydrogen, HighLevelCalculator())
     test_energy_forces_virial(hydrogen, HighLevelCalculator())
-    test_forces(hydrogen, HighLevelCalculatorAllocating())
 end
 
 @testset "Low-level calculator interface" begin
@@ -165,9 +161,6 @@ end
     :H => [0, 0, 1.]u"Å"
     ])
 
-    test_potential_energy(hydrogen, LowLevelCalculator())
-    test_forces(hydrogen, LowLevelCalculator())
-    test_virial(hydrogen, LowLevelCalculator())
     test_energy_forces_virial(hydrogen, LowLevelCalculator())
 
     efv = AtomsCalculators.energy_forces_virial(hydrogen, LowLevelCalculator())
