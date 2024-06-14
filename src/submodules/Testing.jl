@@ -1,4 +1,4 @@
-module AtomsCalculatorsTesting
+module Testing
 
 using ..AtomsCalculators
 using Unitful
@@ -239,4 +239,27 @@ function test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1
 end
 
 
-end
+end # Testing
+
+
+# Old deprecated module
+module AtomsCalculatorsTesting
+
+import ..AtomsCalculators
+
+export test_forces
+export test_virial
+export test_potential_energy
+
+export test_energy_forces
+export test_energy_forces_virial
+
+
+@deprecate test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+@deprecate test_virial(sys, calculator; rtol=1e8, kwargs...) AtomsCalculators.Testing.test_virial(sys, calculator; rtol=rtol, kwargs...)
+@deprecate test_potential_energy(sys, calculator; rtol=1e8, kwargs...) AtomsCalculators.Testing.test_potential_energy(sys, calculator; rtol=rtol, kwargs...)
+
+@deprecate test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_energy_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+@deprecate test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_energy_forces_virial(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+
+end # AtomsCalculatorsTesting

@@ -4,7 +4,7 @@ using Test
 using Unitful
 using UnitfulAtomic
 
-using AtomsCalculators.AtomsCalculatorsTesting
+using AtomsCalculators.Testing
 
 
 @testset "Parsing macro" begin
