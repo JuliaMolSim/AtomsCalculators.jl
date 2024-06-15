@@ -72,7 +72,7 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
     # or give extra information like pairlist
 
     # add your own definition here
-    return ( virial = zeros(3,3) * u"eV", )
+    return ( virial = zeros(3,3) * u"eV", state=nothing)
 end
 ```
 
@@ -111,7 +111,7 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
     # or give extra information like pairlist
 
     # add your own definition
-    return ( forces = zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)), )
+    return ( forces = zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)), state=nothing )
 end
 ```
 

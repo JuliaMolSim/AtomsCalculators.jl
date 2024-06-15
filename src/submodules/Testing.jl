@@ -66,6 +66,7 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
                                         parameters, state, kwargs...)
         @test isa(fc, NamedTuple)
         @test haskey(fc, :forces)
+        @test haskey(fc, :state)
         @test all( f .- fc[:forces] ) do Δf  # f ≈ fc[:forces]
             isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
         end
@@ -103,6 +104,7 @@ function test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
                                         parameters, state, kwargs...)
         @test isa(ec, NamedTuple)
         @test haskey(ec, :energy)
+        @test haskey(ec, :state)
         @test e ≈ ec[:energy] rtol=rtol
     end
 end
@@ -141,6 +143,7 @@ function test_virial(sys, calculator; rtol=1e8, kwargs...)
                                         parameters, state, kwargs...)
         @test isa(vc, NamedTuple)
         @test haskey(vc, :virial)
+        @test haskey(vc, :state)
         @test all( isapprox(v, vc[:virial], rtol=rtol ) )
     end
 end

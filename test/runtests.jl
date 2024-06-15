@@ -180,4 +180,5 @@ end
     @test haskey(com, :energy)
     @test haskey(com, :forces)
     @test haskey(com, :virial)
+    @test haskey(com, :state)
 end

@@ -170,10 +170,11 @@ function energy_forces_virial!(f::AbstractVector, system, calculator; kwargs...)
 end 
 
 
-function calculate(properties::Tuple, sys, calc, state=nothing, params=nothing; kwargs...)
+function calculate(properties::Tuple, sys, calc, params=nothing, state=nothing; kwargs...)
     out = Dict{Symbol, Any}()
+    out[:state] = state
     for property in properties
-        tmp = calculate(property, sys, calc, state, params; kwargs...)
+        tmp = calculate(property, sys, calc, params, out[:state]; kwargs...)
         for (k,v) in pairs(tmp)
             out[k] = v
         end
