@@ -11,7 +11,7 @@ In additionally there is [AtomsCalculatorsUtilities](https://github.com/JuliaMol
 
 ## Interface generating macro
 
-AtomsCalculator provide a macro [`@generate_inferface`](@ref) that generate other interfaces from the input.
+AtomsCalculator provide a macro [`@generate_interface`](@ref) that generate other interfaces from the input.
 
 In example, if you only provide high level interface you can just implement
 
@@ -136,6 +136,10 @@ end
 
 Both of these methods create fully working implementation.
 
+
+```@meta
+CurrentModule = AtomsCalculators.Testing
+```
 
 ## Testing functions
 
