@@ -26,6 +26,8 @@ AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(
 	return 0.0u"hartree"
 end
 
+AtomsCalculators.energy_unit(::HighLevelCalculator) = u"hartree"
+
 struct LowLevelCalculator
         parameters # We here choose to allow bundling parameters inside the calculator.
 end
@@ -49,6 +51,8 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
         # Return input state.
         return (; :energy => 0.0u"hartree", state)
 end
+
+AtomsCalculators.energy_unit(::LowLevelCalculator) = u"hartree"
 
 hydrogen = isolated_system([
 :H => [0, 0, 0.]u"Å",
