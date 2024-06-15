@@ -1,54 +1,11 @@
-# Interface Definition
-
-There are two alternative ways to call the interface: using functions `potential_energy`, `forces` and [virial](https://en.wikipedia.org/wiki/Virial_stress), or using `calculate`
-function together with `Energy`, `Forces` and `Virial`.
-
-Individual calls are implemented by dispatching `AtomsCalculators` functions
-
-- `AtomsCalculators.potential_energy` for potential energy calculation
-- `AtomsCalculators.forces` for allocating force calculation and/or...
-- `AtomsCalculators.forces!` for non-allocating force calculation
-- `AtomsCalculators.virial` for [virial](https://en.wikipedia.org/wiki/Virial_stress) calculation
-
-The `calculate` interface is implemented by dispatching to
-
-- `AtomsCalculators.calculate` using `AtomsCalculators.Energy()` as the first argument for energy calculation
-- `AtomsCalculators.calculate` using `AtomsCalculators.Forces()` as the first argument for forces calculaton
-- `AtomsCalculators.calculate` using `AtomsCalculators.Virial()` as the first argument for virial calculation
-
-You do not need to implement all of these by yourself. There is macro that will help implement the other calls. 
-
-Each of the individual calls have two common inputs: `AtomsBase.AbstractSystem` compatible structure and a `calculator` that incudes details of the calculation method. Calculate interface has additionally the type of calculation as the first input. You can tune calculation by passing keyword arguments, which can be ignored, but they need to be present in the function definition.
-
-`potential_energy`, `forces`, `forces!` and `virial`:
-
-- First input is `AtomsBase.AbstractSystem` compatible structure
-- Second input is `calculator` structure
-- Method has to accept keyword arguments (they can be ignored)
-- Non-allocating force call `force!` has an AbstractVector as the first input, to which the evaluated force values are stored (look for more details below)
-
-`calculate`:
-
-- First input is either `Energy()`, `Forces()` or `Virial()`
-- Second is `AtomsBase.AbstractSystem` compatible structure
-- Third is `calculator` structure
-- Method has to accept keyword arguments (they can be ignored)
-
-## Output
-
-Outputs for the functions need to have following properties
-
-- Energy is a subtype of `Number` that has a unit with dimensions of energy (mass * length^2 / time^2)
-- Force output is a subtype of `AbstractVector` with element type also a subtype of AbstractVector (length 3 in 3D) and unit with dimensions of force (mass * length / time^2). With additional property that it can be reinterpret as a matrix
-- Virial is a square matrix (3x3 in 3D) that has units of force times length or energy
-- Calculate methods return a [NamedTuple](https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple) that uses keys `:energy`, `:forces` and `:virial` to identify the results, which have the types defined above
-
 ## Implementing the interface
+
+**Note, this section is partly outdated!**
 
 You can either implement both of the calls e.g. for energy
 
 `AtomsCalculators.potential_energy(system, calculator; kwargs...)` and
-`AtomsCalculators(AtomsCalculators.Energy(), system, calculator; kwargs...)`
+`AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator, ps=nothing, st=nothing; kwargs...)`
 
 ### Example implementations
 
@@ -72,7 +29,14 @@ end
 Completely equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Energy, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing; 
+    kwargs...
+)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -96,12 +60,19 @@ end
 Equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Virial, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing;
+    kwargs...
+)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
     # add your own definition here
-    return ( virial = zeros(3,3) * u"eV", )
+    return ( virial = zeros(3,3) * u"eV", state=nothing)
 end
 ```
 
@@ -128,12 +99,19 @@ Same way `AtomsCalculators.promote_force_type(system, calculator)` creates a for
 Alternatively the definition could have been done with
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Forces, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing;
+    kwargs...
+)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
     # add your own definition
-    return ( forces = zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)), )
+    return ( forces = zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)), state=nothing )
 end
 ```
 

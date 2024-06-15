@@ -16,7 +16,10 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "Interface Definition" => "interface-definition.md",
+        "Interface" => "interface.md",
+        "Utilities" => "utilities.md",
+        "Example" => "example.md",
+        "Index" => "api.md",
     ],
 )
 

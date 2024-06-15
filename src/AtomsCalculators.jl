@@ -7,7 +7,7 @@ using Unitful
 
 include("interface.jl")
 include("utils.jl")
-include("submodules/AtomsCalculatorsTesting.jl")
+include("submodules/Testing.jl")
 
 
 end
