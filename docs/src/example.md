@@ -1,9 +1,11 @@
 ## Implementing the interface
 
+**Note, this section is partly outdated!**
+
 You can either implement both of the calls e.g. for energy
 
 `AtomsCalculators.potential_energy(system, calculator; kwargs...)` and
-`AtomsCalculators(AtomsCalculators.Energy(), system, calculator; kwargs...)`
+`AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator, ps=nothing, st=nothing; kwargs...)`
 
 ### Example implementations
 
@@ -27,7 +29,14 @@ end
 Completely equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Energy, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing; 
+    kwargs...
+)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -51,7 +60,14 @@ end
 Equivalent implementation is
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Virial, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing;
+    kwargs...
+)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
@@ -83,7 +99,14 @@ Same way `AtomsCalculators.promote_force_type(system, calculator)` creates a for
 Alternatively the definition could have been done with
 
 ```julia
-AtomsCalculators.@generate_interface function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::MyType; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Forces, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing;
+    kwargs...
+)
     # we can ignore kwargs... or use them to tune the calculation
     # or give extra information like pairlist
 
