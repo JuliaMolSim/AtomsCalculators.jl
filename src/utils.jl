@@ -40,14 +40,14 @@ macro generate_interface(expr)
     try
         type = determine_type_calculation(expr)
     catch _
-        error("Could not determine the type of calculation (energy, forces or virial...)")
+        error("Possible typo (or other issue) in function definition. Could not determine the type of calculation (energy, forces or virial...).")
     end
     
     calculator_type = nothing
     try 
         calculator_type = get_calculator_type(expr, type)
     catch _
-        error("Could not determine calculators type")
+        error("Possible typo (or other issue) in function definition. Could not determine the calculators type.")
     end
     q = Expr(:nothing)
     if type[:calculator]
