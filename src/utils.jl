@@ -40,14 +40,14 @@ macro generate_interface(expr)
     try
         type = determine_type_calculation(expr)
     catch _
-        error("Could not determine the type of calculation (energy, forces or virial...)")
+        error("Possible typo (or other issue) in function definition. Could not determine the type of calculation (energy, forces or virial...).")
     end
     
     calculator_type = nothing
     try 
-        calculator_type = get_calculator_type(expr)
+        calculator_type = get_calculator_type(expr, type)
     catch _
-        error("Could not determine calculators type")
+        error("Possible typo (or other issue) in function definition. Could not determine the calculators type.")
     end
     q = Expr(:nothing)
     if type[:calculator]
@@ -137,18 +137,30 @@ function check_for_keywords(expr)
     return any( [ Symbol("...") == x.head  for x in expr.args[1].args[2].args ] )
 end
 
-function get_calculator_type(expr)
-    return expr.args[1].args[end].args[2]
+function get_calculator_type(expr, type)
+    if type[:type] in [:Energy, :Forces, :Virial]
+        return expr.args[1].args[end - 2].args[2]
+    else
+        return expr.args[1].args[end].args[2]
+    end
 end
 
 
 ## Functions to generate expressions
 
+# Generate low level calls from high-level ones.
+# ----------------------------------------------
+# calculate call generated from the high-level call return empty state.
+
 function generate_calculator_energy(calc_type)
     q = quote
-        function AtomsCalculators.calculate(::AtomsCalculators.Energy, system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.calculate(::AtomsCalculators.Energy, system,
+                                            calculator::$calc_type,
+                                            parameters=nothing,
+                                            state=nothing;
+                                            kwargs...)
             e = AtomsCalculators.potential_energy(system, calculator; kwargs...)
-            return ( energy = e, )
+            return ( energy = e, state = nothing )
         end
     end
     return q
@@ -156,9 +168,13 @@ end
 
 function generate_calculator_forces(calc_type)
     q = quote
-        function AtomsCalculators.calculate(::AtomsCalculators.Forces, system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.calculate(::AtomsCalculators.Forces, system,
+                                            calculator::$calc_type,
+                                            parameters=nothing,
+                                            state=nothing;
+                                            kwargs...)
             f = AtomsCalculators.forces(system, calculator; kwargs...)
-            return ( forces = f, )
+            return ( forces = f, state = nothing )
         end
     end
     return q
@@ -166,19 +182,28 @@ end
 
 function generate_calculator_virial(calc_type)
     q = quote 
-        function AtomsCalculators.calculate(::AtomsCalculators.Virial, system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.calculate(::AtomsCalculators.Virial, system,
+                                            calculator::$calc_type,
+                                            parameters=nothing,
+                                            state=nothing;
+                                            kwargs...)
             v = AtomsCalculators.virial(system, calculator; kwargs...)
-            return ( virial = v, )
+            return ( virial = v, state = nothing)
         end
     end
     return q
 end
 
 
+# Generate high level calls from low-level ones.
+# -----------------------------------------------
+# High level calls use the low level one with default parameters and state.
+
 function generate_potential_energy(calc_type)
     q = quote 
         function AtomsCalculators.potential_energy(system, calculator::$calc_type; kwargs...)
-            e = AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator; kwargs...)
+            e = AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator,
+                                           nothing, nothing; kwargs...)
             return e[:energy]
         end
     end
@@ -188,7 +213,8 @@ end
 function generate_virial(calc_type)
     q = quote
         function AtomsCalculators.virial(system, calculator::$calc_type; kwargs...)
-            v = AtomsCalculators.calculate(AtomsCalculators.Virial(), system, calculator; kwargs...)
+            v = AtomsCalculators.calculate(AtomsCalculators.Virial(), system, calculator,
+                                           nothing, nothing; kwargs...)
             return v[:virial]
         end
     end
@@ -220,7 +246,8 @@ end
 function generate_forces_from_calculator(calc_type)
     q1 = quote 
         function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
-            f = AtomsCalculators.calculate(AtomsCalculators.Forces(), system, calculator; kwargs...)
+            f = AtomsCalculators.calculate(AtomsCalculators.Forces(), system, calculator,
+                                           nothing, nothing; kwargs...)
             return f[:forces]
         end
     end

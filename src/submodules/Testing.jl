@@ -1,4 +1,4 @@
-module AtomsCalculatorsTesting
+module Testing
 
 using ..AtomsCalculators
 using Unitful
@@ -30,6 +30,8 @@ The calculator is expected to work without kwargs.
 """
 function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
     @testset "Test forces for $(typeof(calculator))" begin
+        parameters = nothing
+        state = nothing
         ftype = something(
             force_eltype, 
             AtomsCalculators.promote_force_type(sys, calculator)
@@ -43,10 +45,14 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         @test typeof(f_matrix) <: AbstractMatrix
         @test eltype(f_matrix) <: Number
         @test size(f_matrix) == (3, length(f))
-        @test all( AtomsCalculators.forces(sys, calculator; dummy_kword659234=1, kwargs...) .≈ f )
+        f_dummy = AtomsCalculators.forces(sys, calculator; dummy_kword659234=1, kwargs...)
+        @test all( f_dummy .- f  ) do Δf # f_dummy ≈ f
+            isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
+        end
         f_cpu_array = Array(f)  # Allow GPU output
         @test dimension(f_cpu_array[1][1]) == dimension(u"N")
         @test length(f_cpu_array[1]) == (length ∘ position)(sys,1)
+        @test unit(f_cpu_array[1][1]) == AtomsCalculators.force_unit(calculator)
         f_nonallocating = zeros(ftype, length(sys))
         AtomsCalculators.forces!(f_nonallocating, sys, calculator; kwargs...)
         @test all( f_nonallocating .- f  ) do Δf # f_nonallocating ≈ f
@@ -56,9 +62,11 @@ function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
         @test all( f_nonallocating .- 2f  ) do Δf # non-allocating is additive and called twice
             isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
         end
-        fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator; kwargs...)
+        fc = AtomsCalculators.calculate(AtomsCalculators.Forces(), sys, calculator;
+                                        parameters, state, kwargs...)
         @test isa(fc, NamedTuple)
         @test haskey(fc, :forces)
+        @test haskey(fc, :state)
         @test all( f .- fc[:forces] ) do Δf  # f ≈ fc[:forces]
             isapprox( ustrip.( zero(ftype) ), ustrip.(Δf); rtol=rtol)
         end
@@ -83,14 +91,20 @@ The calculator is expected to work without kwargs.
 """
 function test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
     @testset "Test potential_energy for $(typeof(calculator))" begin
+        parameters = nothing
+        state = nothing
         e = AtomsCalculators.potential_energy(sys, calculator; kwargs...)
         @test typeof(e) <: Number
         @test dimension(e) == dimension(u"J")
+        @test unit(e) == AtomsCalculators.energy_unit(calculator)
         e2 = AtomsCalculators.potential_energy(sys, calculator; dummy_kword6594254=1, kwargs...)
+
         @test e ≈ e2 rtol=rtol
-        ec = AtomsCalculators.calculate(AtomsCalculators.Energy(), sys, calculator; kwargs...)
+        ec = AtomsCalculators.calculate(AtomsCalculators.Energy(), sys, calculator;
+                                        parameters, state, kwargs...)
         @test isa(ec, NamedTuple)
         @test haskey(ec, :energy)
+        @test haskey(ec, :state)
         @test e ≈ ec[:energy] rtol=rtol
     end
 end
@@ -112,18 +126,24 @@ The calculator is expected to work without kwargs.
 """
 function test_virial(sys, calculator; rtol=1e8, kwargs...)
     @testset "Test virial for $(typeof(calculator))" begin
+        parameters = nothing
+        state = nothing
         v = AtomsCalculators.virial(sys, calculator; kwargs...)
         @test typeof(v) <: AbstractMatrix
         @test eltype(v) <: Number
         v_cpu_array = Array(v) # Allow GPU arrays
         @test dimension(v_cpu_array[1,1]) == dimension(u"J")
+        @test unit(v_cpu_array[1,1]) == AtomsCalculators.energy_unit(calculator)
         l = (length ∘ position)(sys,1) 
         @test size(v) == (l,l) # allow different dimensions than 3
         v2 = AtomsCalculators.virial(sys, calculator; dummy_kword6594254=1, kwargs...)
+
         @test all( isapprox.(v, v2; rtol=rtol ) )
-        vc = AtomsCalculators.calculate(AtomsCalculators.Virial(), sys, calculator; kwargs...)
+        vc = AtomsCalculators.calculate(AtomsCalculators.Virial(), sys, calculator;
+                                        parameters, state, kwargs...)
         @test isa(vc, NamedTuple)
         @test haskey(vc, :virial)
+        @test haskey(vc, :state)
         @test all( isapprox(v, vc[:virial], rtol=rtol ) )
     end
 end
@@ -222,4 +242,27 @@ function test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1
 end
 
 
-end
+end # Testing
+
+
+# Old deprecated module
+module AtomsCalculatorsTesting
+
+import ..AtomsCalculators
+
+export test_forces
+export test_virial
+export test_potential_energy
+
+export test_energy_forces
+export test_energy_forces_virial
+
+
+@deprecate test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+@deprecate test_virial(sys, calculator; rtol=1e8, kwargs...) AtomsCalculators.Testing.test_virial(sys, calculator; rtol=rtol, kwargs...)
+@deprecate test_potential_energy(sys, calculator; rtol=1e8, kwargs...) AtomsCalculators.Testing.test_potential_energy(sys, calculator; rtol=rtol, kwargs...)
+
+@deprecate test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_energy_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+@deprecate test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_energy_forces_virial(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+
+end # AtomsCalculatorsTesting
