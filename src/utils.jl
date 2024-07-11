@@ -122,9 +122,9 @@ function determine_type_calculation(expr)
         )
     elseif type_of_calculation == :calculate # calculator interface -> find calc type too
         # Need to have definition of AtomsCalculators.Energy() etc.
-        if expr.args[1].args[3].args[1].args[2].value in [:Energy, :Forces, :Virial]
+        if expr.args[1].args[3].args[end].args[end].value in [:Energy, :Forces, :Virial]
             return (;
-                :type => expr.args[1].args[3].args[1].args[2].value,
+                :type => expr.args[1].args[3].args[end].args[end].value,
                 :calculator => true
             )
         end
