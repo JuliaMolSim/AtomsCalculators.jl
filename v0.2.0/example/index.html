@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Example · AtomsCalculators.jl</title><meta name="title" content="Example · AtomsCalculators.jl"/><meta property="og:title" content="Example · AtomsCalculators.jl"/><meta property="twitter:title" content="Example · AtomsCalculators.jl"/><meta name="description" content="Documentation for AtomsCalculators.jl."/><meta property="og:description" content="Documentation for AtomsCalculators.jl."/><meta property="twitter:description" content="Documentation for AtomsCalculators.jl."/><meta property="og:url" content="https://JuliaMolSim.github.io/AtomsCalculators.jl/example/"/><meta property="twitter:url" content="https://JuliaMolSim.github.io/AtomsCalculators.jl/example/"/><link rel="canonical" href="https://JuliaMolSim.github.io/AtomsCalculators.jl/example/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">AtomsCalculators.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../interface/">Interface</a></li><li><a class="tocitem" href="../utilities/">Utilities</a></li><li class="is-active"><a class="tocitem" href>Example</a><ul class="internal"><li><a class="tocitem" href="#Implementing-the-interface"><span>Implementing the interface</span></a></li><li><a class="tocitem" href="#Other-Automatically-Generated-Calls"><span>Other Automatically Generated Calls</span></a></li><li><a class="tocitem" href="#Testing-Function-Calls"><span>Testing Function Calls</span></a></li></ul></li><li><a class="tocitem" href="../api/">Index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Example</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Example</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaMolSim/AtomsCalculators.jl/blob/master/docs/src/example.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h2 id="Implementing-the-interface"><a class="docs-heading-anchor" href="#Implementing-the-interface">Implementing the interface</a><a id="Implementing-the-interface-1"></a><a class="docs-heading-anchor-permalink" href="#Implementing-the-interface" title="Permalink"></a></h2><p><strong>Note, this section is partly outdated!</strong></p><p>You can either implement both of the calls e.g. for energy</p><p><code>AtomsCalculators.potential_energy(system, calculator; kwargs...)</code> and <code>AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator, ps=nothing, st=nothing; kwargs...)</code></p><h3 id="Example-implementations"><a class="docs-heading-anchor" href="#Example-implementations">Example implementations</a><a id="Example-implementations-1"></a><a class="docs-heading-anchor-permalink" href="#Example-implementations" title="Permalink"></a></h3><p>Example <code>potential_energy</code> implementation</p><pre><code class="language-julia hljs">using AtomsCalculators
+using Unitful
+struct MyType
+end
+
+AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition here
+    return 0.0u&quot;eV&quot;
+end</code></pre><p>Completely equivalent implementation is</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Energy, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing; 
+    kwargs...
+)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition here
+    return ( energy = 0.0u&quot;eV, )
+end</code></pre><p>Example <code>virial</code> implementation</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.virial(system, calculator::MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition here
+    return zeros(3,3) * u&quot;eV&quot;
+end</code></pre><p>Equivalent implementation is</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Virial, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing;
+    kwargs...
+)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition here
+    return ( virial = zeros(3,3) * u&quot;eV&quot;, state=nothing)
+end</code></pre><h3 id="Implementing-forces-call"><a class="docs-heading-anchor" href="#Implementing-forces-call">Implementing forces call</a><a id="Implementing-forces-call-1"></a><a class="docs-heading-anchor-permalink" href="#Implementing-forces-call" title="Permalink"></a></h3><p>Basic example</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.forces(system, calculator::MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition
+    return AtomsCalculators.zero_forces(system, calculator)
+end</code></pre><p>This creates both <code>forces</code> and <code>forces!</code> and <code>calculate</code> command with <code>Forces()</code> support.</p><p><code>AtomsCalculators.zero_forces(system, calculator)</code> is a function that creates zero forces for a given calculator and system combo. You can use this function to tune your force output.</p><p>Same way <code>AtomsCalculators.promote_force_type(system, calculator)</code> creates a force type for the calculator for given input that can be used to allocate force data. You can also allocate for some other type, of your choosing or use the default one. You can overload <code>promote_force_type</code> for your force type, this is automatically used by <code>zero_forces</code> command to change the element type. If you wan to change array type overload <code>zero_forces</code> for your calculator.</p><p>Alternatively the definition could have been done with</p><pre><code class="language-julia hljs">AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    ::AtomsCalculators.Forces, 
+    system, 
+    calculator::MyType,
+    ps=nothing,
+    st=nothing;
+    kwargs...
+)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition
+    return ( forces = zeros(AtomsCalculators.promote_force_type(system, calculator), length(system)), state=nothing )
+end</code></pre><p>or with non-allocating forces</p><pre><code class="language-julia hljs">struct MyOtherType
+end
+
+AtomsCalculators.@generate_interface function AtomsCalculators.forces!(f::AbstractVector, system, calculator::MyOtherType; kwargs...)
+    @assert length(f) == length(system)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition
+    for i in eachindex(f)
+        # forces! adds to the force array
+        f[i] += zero(AtomsCalculators.promote_force_type(system, calculator))
+    end
+
+    return f
+end</code></pre><h2 id="Other-Automatically-Generated-Calls"><a class="docs-heading-anchor" href="#Other-Automatically-Generated-Calls">Other Automatically Generated Calls</a><a id="Other-Automatically-Generated-Calls-1"></a><a class="docs-heading-anchor-permalink" href="#Other-Automatically-Generated-Calls" title="Permalink"></a></h2><p>Many methods have optimized calls when energy and forces (and/or virial) are calculated together. To allow access to these calls there are also calls</p><ul><li><code>energy_forces</code> for potential energy and allocating forces</li><li><code>energy_forces!</code> for potential energy and non-allocating forces</li><li><code>energy_forces_virial</code> for potential energy, allocating forces and virial</li><li><code>energy_forces_virial!</code> for potential energy, non-allocating forces and virial</li></ul><p>These all are generated automatically, if you have defined the corresponding individual methods. The main idea here is that you can implement more efficient methods by yourself.</p><p>Example implementation</p><pre><code class="language-julia hljs">function AtomsCalculators.potential_energy_forces(system, calculator::MyType; kwargs...)
+    # we can ignore kwargs... or use them to tune the calculation
+    # or give extra information like pairlist
+
+    # add your own definition here
+    E = 0.0u&quot;eV&quot;
+    f = zeros(AtomsCalculators.default_force_eltype, length(system))
+    return (;
+        :energy =&gt; E,
+        :forces =&gt; f
+    )
+end</code></pre><p>Defining this does not overload the corresponding non-allocating call - you need to do that separately.</p><p>Output for the combination methods is defined to have keys <code>:energy</code>, <code>:forces</code> and <code>:virial</code>. You can access them with</p><ul><li><code>output[:energy]</code> for energy</li><li><code>output[:forces]</code> for forces</li><li><code>output[:virial]</code> for viral</li></ul><p>The type of the output can be <a href="https://docs.julialang.org/en/v1/base/base/#Core.NamedTuple">NamedTuple</a>, as was in the example above, or any structure that has the keys implemented and also supports splatting. The reason for this is that this allows everyone to implement the performance functions without being restricted to certain output type, and to allow using <code>haskey</code> to check the output.</p><h2 id="Testing-Function-Calls"><a class="docs-heading-anchor" href="#Testing-Function-Calls">Testing Function Calls</a><a id="Testing-Function-Calls-1"></a><a class="docs-heading-anchor-permalink" href="#Testing-Function-Calls" title="Permalink"></a></h2><p>We have implemented function calls to help you testing the API. There is one call for each type of calls</p><ul><li><code>test_potential_energy</code> to test potential_energy call</li><li><code>test_forces</code> to test both allocating and non-allocating force calls</li><li><code>test_virial</code> to test virial call</li><li><code>test_energy_forces</code> to test both potential energy and force calls</li><li><code>test_energy_forces_virial</code> to test everything </li></ul><p>To get these access to these functions you need to call</p><pre><code class="language-julia hljs">using AtomsCalculators.AtomsCalculatorsTesting</code></pre><p>To test our example potential <code>MyType</code> we can do</p><pre><code class="language-julia hljs">using AtomsBase
+using AtomsCalculators.AtomsCalculatorsTesting
+
+hydrogen = isolated_system([
+    :H =&gt; [0, 0, 0.]u&quot;Å&quot;,
+    :H =&gt; [0, 0, 1.]u&quot;Å&quot;
+])
+
+test_potential_energy(hydrogen, MyType())
+test_forces(hydrogen, MyType())
+test_virial(hydrogen, MyType())
+
+test_forces(hydrogen, MyOtherType()) # this works
+test_virial(hydrogen, MyOtherType()) # this will fail
+
+# If you have energy and forces implemented use this over others
+test_energy_forces(hydrogen, MyType())
+
+# If you have energy, forces and virial implemented use this others
+test_energy_forces_virial(hydrogen, MyType())</code></pre><p><em>It is recommended that you use the test functions to test that your implementation supports the API fully!</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../utilities/">« Utilities</a><a class="docs-footer-nextpage" href="../api/">Index »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.5.0 on <span class="colophon-date" title="Thursday 11 July 2024 20:55">Thursday 11 July 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
