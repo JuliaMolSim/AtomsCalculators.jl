@@ -140,7 +140,7 @@ end
     end
     
     AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
-            ::AtomsCalculators.Virial,
+            v::AtomsCalculators.Virial,
             system, calculator::LowLevelCalculator,
             parameters=nothing, state=nothing;
             kwargs...)
