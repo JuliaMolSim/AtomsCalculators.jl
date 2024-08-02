@@ -79,6 +79,30 @@ using AtomsCalculators.Testing
         Base.remove_linenums!(expr_high_level_virial).args[1])[:type] == :virial
 end
 
+
+@testset "New Macro" begin
+    struct MyCalc end
+    function AtomsCalculators.potential_energy(system, calculator::MyCalc; kwargs...)
+        return 0.0u"hartree"
+    end
+    function AtomsCalculators.energy_unit(::MyCalc)
+        u"hartree"
+    end 
+    function AtomsCalculators.length_unit(::MyCalc)
+        u"bohr"
+    end 
+    AtomsCalculators.generate_missing(MyCalc)
+    stats = AtomsCalculators.implementation_status(MyCalc)
+    @test stats[:calculate_energy]
+    hydrogen = isolated_system([
+        :H => [0, 0, 0.]u"Å",
+        :H => [0, 0, 1.]u"Å"
+    ])
+
+    test_potential_energy(hydrogen, MyCalc())
+end
+
+
 @testset "High-level calculator interface" begin
     struct HighLevelCalculator end
     struct HighLevelCalculatorAllocating end
