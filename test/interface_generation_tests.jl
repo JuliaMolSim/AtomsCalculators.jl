@@ -64,7 +64,7 @@ using AtomsCalculators.Testing
         test_forces(hydrogen, MyCalc4())
     end
 
-    @testset "forces" begin
+    @testset "calculate forces" begin
         struct MyCalc5 <: MyCalc end
         function AtomsCalculators.calculate(
                 ::AtomsCalculators.Forces,
@@ -148,6 +148,41 @@ using AtomsCalculators.Testing
         end
         AtomsCalculators.generate_missing_interface(MyCalc11)
         test_energy_forces_virial(hydrogen, MyCalc11())
+    end
+
+    @testset "calculate energy and energy_forces_virial" begin
+        struct MyCalc12 <: MyCalc end
+        function AtomsCalculators.energy_forces_virial(system, calculator::MyCalc12; kwargs...)
+            f = AtomsCalculators.zero_forces(system, calculator)
+            v = zeros(3,3) * u"hartree"
+            return (energy=0.0u"hartree", forces=f, virial=v)
+        end
+        function AtomsCalculators.calculate(
+            ::AtomsCalculators.Energy,
+            system, calculator::MyCalc12,
+            parameters=nothing, state=nothing;
+            kwargs...)
+            return (; :energy => 0.0u"hartree", :state => nothing)
+        end
+        AtomsCalculators.generate_missing_interface(MyCalc12)
+        test_energy_forces_virial(hydrogen, MyCalc12())
+    end
+
+    @testset "calculate forces and energy_forces" begin
+        struct MyCalc13 <: MyCalc end
+        function AtomsCalculators.energy_forces(system, calculator::MyCalc13; kwargs...)
+            f = AtomsCalculators.zero_forces(system, calculator)
+            return (energy=0.0u"hartree", forces=f)
+        end
+        function AtomsCalculators.calculate(
+            ::AtomsCalculators.Forces,
+            system, calculator::MyCalc13,
+            parameters=nothing, state=nothing;
+            kwargs...)
+        return (; :forces => AtomsCalculators.zero_forces(system, calculator), :state => nothing)
+    end
+        AtomsCalculators.generate_missing_interface(MyCalc13)
+        test_energy_forces(hydrogen, MyCalc13())
     end
 
 end

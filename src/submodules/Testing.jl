@@ -172,11 +172,19 @@ function test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwa
         e0 = AtomsCalculators.potential_energy(sys, calculator; kwargs...)
         f0 = AtomsCalculators.forces(sys, calculator; kwargs...)
         res = AtomsCalculators.energy_forces(sys, calculator; kwargs...)
+        calc_type = (AtomsCalculators.Energy(), AtomsCalculators.Forces())
+        cres = AtomsCalculators.calculate(calc_type, sys, calculator; kwargs...)
         @test isa(res, NamedTuple)
         @test haskey(res, :energy)
         @test haskey(res, :forces)
+        @test haskey(cres, :energy)
+        @test haskey(cres, :forces)
         @test e0 ≈ res[:energy] rtol=rtol
+        @test e0 ≈ cres[:energy] rtol=rtol
         @test all( f0 .- res[:forces]  ) do Δf
+            isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); rtol=rtol)
+        end
+        @test all( f0 .- cres[:forces]  ) do Δf
             isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); rtol=rtol)
         end
         f1 = AtomsCalculators.zero_forces(sys, calculator)
@@ -217,15 +225,25 @@ function test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1
         f0 = AtomsCalculators.forces(sys, calculator; kwargs...)
         v0 = AtomsCalculators.virial(sys, calculator; kwargs...)
         res = AtomsCalculators.energy_forces_virial(sys, calculator; kwargs...)
+        calc_type = (AtomsCalculators.Energy(), AtomsCalculators.Forces(), AtomsCalculators.Virial())
+        cres = AtomsCalculators.calculate(calc_type, sys, calculator; kwargs...)
         @test isa(res, NamedTuple)
         @test haskey(res, :energy)
         @test haskey(res, :forces)
         @test haskey(res, :virial)
+        @test haskey(cres, :energy)
+        @test haskey(cres, :forces)
+        @test haskey(cres, :virial)
         @test e0 ≈ res[:energy] rtol=rtol
+        @test e0 ≈ cres[:energy] rtol=rtol
         @test all( f0 .- res[:forces]  ) do Δf
             isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); rtol=rtol)
         end
+        @test all( f0 .- cres[:forces]  ) do Δf
+            isapprox( ustrip.( zero(Δf) ), ustrip.(Δf); rtol=rtol)
+        end
         @test all( isapprox(v0, res[:virial]; rtol=rtol) )
+        @test all( isapprox(v0, cres[:virial]; rtol=rtol) )
 
         f1 = AtomsCalculators.zero_forces(sys, calculator)
         res2 = AtomsCalculators.energy_forces_virial!(f1, sys, calculator; kwargs...)
