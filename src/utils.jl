@@ -309,7 +309,7 @@ end
 
 function generate_forces_from_energy_forces(calc_type)
     q = quote 
-        function AtomsCalculators.potential_energy(system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
             f = AtomsCalculators.energy_forces( system, calculator; kwargs...)
             return f[:forces]
         end
@@ -319,7 +319,7 @@ end
 
 function generate_forces_from_energy_forces_virial(calc_type)
     q = quote 
-        function AtomsCalculators.potential_energy(system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
             f = AtomsCalculators.energy_forces_virial( system, calculator; kwargs...)
             return f[:forces]
         end
@@ -338,10 +338,21 @@ function generate_allocating_forces_from_energy_forces!(calc_type)
     return q
 end
 
+function generate_allocating_forces_from_energy_forces_virial!(calc_type)
+    q = quote
+        function AtomsCalculators.forces(system, calculator::$calc_type; kwargs...)
+            F = AtomsCalculators.zero_forces(system, calculator) 
+            AtomsCalculators.energy_forces_virial!(F, system, calculator; kwargs...)
+            return F
+        end
+    end
+    return q
+end
+
 
 function generate_virial_from_energy_forces_virial(calc_type)
     q = quote 
-        function AtomsCalculators.potential_energy(system, calculator::$calc_type; kwargs...)
+        function AtomsCalculators.virial(system, calculator::$calc_type; kwargs...)
             res = AtomsCalculators.energy_forces_virial( system, calculator; kwargs...)
             return res[:virial]
         end
@@ -360,6 +371,95 @@ function generate_virial_from_energy_forces_virial!(calc_type)
     end
     return q
 end
+
+
+function generate_energy_forces_from_energy_forces!(calc_type)
+    q = quote
+        function AtomsCalculators.energy_forces(system, calculator::$calc_type; kwargs...)
+            F = AtomsCalculators.zero_forces(system, calculator) 
+            tmp = AtomsCalculators.energy_forces!(F, system, calculator; kwargs...)
+            return tmp
+        end
+    end
+    return q
+end
+
+function generate_energy_forces_from_energy_forces_virial!(calc_type)
+    q = quote
+        function AtomsCalculators.energy_forces(system, calculator::$calc_type; kwargs...)
+            F = AtomsCalculators.zero_forces(system, calculator) 
+            tmp = AtomsCalculators.energy_forces_virial!(F, system, calculator; kwargs...)
+            return tmp
+        end
+    end
+    return q
+end
+
+function generate_nonalloc_energy_forces_from_energy_forces_virial!(calc_type)
+    q = quote
+        function AtomsCalculators.energy_forces!(f::AbstractVector, system, calculator::$calc_type; kwargs...)
+            tmp = AtomsCalculators.energy_forces_virial!(f, system, calculator; kwargs...)
+            return tmp
+        end
+    end
+    return q
+end
+
+
+function generate_energy_forces_from_energy_forces_virial(calc_type)
+    q = quote
+        function AtomsCalculators.energy_forces(system, calculator::$calc_type; kwargs...)
+            tmp = AtomsCalculators.energy_forces_virial(system, calculator; kwargs...)
+            return tmp
+        end
+    end
+    return q
+end
+
+
+
+function generate_calculate_energy_forces_virial_from_energy_forces_virial(calc_type)
+    q = quote
+        function AtomsCalculators.calculate( ::Tuple{Energy,Forces,Virial}, system, calculator::$calc_type; kwargs...)
+            tmp = AtomsCalculators.energy_forces_virial(system, calculator; kwargs...)
+            return (tmp..., state=nothing) 
+        end
+    end
+    return q
+end
+
+function generate_calculate_energy_forces_from_energy_forces(calc_type)
+    q = quote
+        function AtomsCalculators.calculate( ::Tuple{Energy,Forces}, system, calculator::$calc_type; kwargs...)
+            tmp = AtomsCalculators.energy_forces(system, calculator; kwargs...)
+            return (tmp..., state=nothing)
+        end
+    end
+    return q
+end
+
+function generate_nonalloc_forces_from_energy_forces!(calc_type)
+    q = quote
+        function AtomsCalculators.forces!(F, system, calculator::$calc_type; kwargs...)
+            tmp = AtomsCalculators.energy_forces!(F, system, calculator; kwargs...)
+            return tmp[:forces]
+        end
+    end
+    return q
+end
+
+
+function generate_energy_forces_virial_from_energy_forces_virial!(calc_type)
+    q = quote
+        function AtomsCalculators.energy_forces_virial( system, calculator::$calc_type; kwargs...)
+            F = AtomsCalculators.zero_forces(system, calculator) 
+            tmp = AtomsCalculators.energy_forces_virial!(F, system, calculator; kwargs...)
+            return tmp
+        end
+    end
+    return q
+end
+
 
 
 ## New macro
@@ -403,7 +503,7 @@ end
 
 
 
-function generate_missing(calc_type::Type)
+function generate_missing_interface(calc_type::Type)
     status = implementation_status(calc_type)
     out = []
 
@@ -445,8 +545,8 @@ function generate_missing(calc_type::Type)
             tmp = generate_calculator_forces(calc_type)
             push!(out, tmp)
         elseif ! status[:forces] && status[:calculate_forces]
-            tmp = generate_forces_from_calculator(calc)
-            push(out, tmp)
+            tmp = generate_only_forces_from_calculator(calc_type)
+            push!(out, tmp)
         end
     elseif status[:energy_forces]
         tmp = generate_forces_from_energy_forces(calc_type)
@@ -459,7 +559,7 @@ function generate_missing(calc_type::Type)
         tmp = generate_calculator_forces(calc_type)
         push!(out, tmp)
     elseif status[:forces!]
-        tmp = generate_nonallocating_forces(calc_type)
+        tmp = generate_allocating_forces(calc_type)
         push!(out, tmp)
         tmp = generate_calculator_forces(calc_type)
         push!(out, tmp)
@@ -475,6 +575,16 @@ function generate_missing(calc_type::Type)
         push!(out, tmp)
     end
 
+    # Nonallocating force calls
+    if ! status[:forces!] && (status[:energy_forces!] ||  status[:energy_forces_virial!])
+        tmp = generate_nonalloc_forces_from_energy_forces!(calc_type)
+        push!(out, tmp)
+    elseif ! status[:forces!] &&
+            (status[:forces] ||  status[:calculate_forces] || status[:energy_forces] ||  status[:energy_forces_virial])
+        tmp = generate_nonallocating_forces(calc_type)
+        push!(out, tmp)
+    end
+
     # Generate only virial calls
     if status[:virial] ||  status[:calculate_virial]
         if status[:virial] && ! status[:calculate_virial]
@@ -487,15 +597,54 @@ function generate_missing(calc_type::Type)
     elseif status[:energy_forces_virial]
         tmp = generate_virial_from_energy_forces_virial(calc_type)
         push!(out, tmp)
-        tmp = generate_calculator_energy(calc_type)
+        tmp = generate_calculator_virial(calc_type)
         push!(out, tmp)
     elseif status[:energy_forces_virial!]
         tmp = generate_virial_from_energy_forces_virial!(calc_type)
         push!(out, tmp)
-        tmp = generate_calculator_energy(calc_type)
+        tmp = generate_calculator_virial(calc_type)
         push!(out, tmp)
     end
 
+    # Combination calls
+    if ! status[:energy_forces] && status[:energy_forces!]
+        tmp = generate_energy_forces_from_energy_forces!(calc_type)
+        push!(out, tmp)
+    elseif ! status[:energy_forces] && status[:energy_forces_virial]
+        tmp = generate_energy_forces_from_energy_forces_virial(calc_type)
+        push!(out, tmp)
+    elseif ! status[:energy_forces] && status[:energy_forces_virial!]
+        tmp = generate_energy_forces_from_energy_forces_virial!(calc_type)
+        push!(out, tmp)
+    end
+
+    if ! status[:energy_forces!] &&  status[:energy_forces_virial!]
+        tmp = generate_nonalloc_energy_forces_from_energy_forces_virial!(calc_type)
+        push!(out, tmp)
+    end
+
+    if ! status[:energy_forces_virial] && status[:energy_forces_virial!]
+        tmp = generate_energy_forces_virial_from_energy_forces_virial!(calc_type)
+        push!(out, tmp)
+
+    end
+
+    if ! status[:calculate_energy] && ! status[:calculate_forces] &&
+            (  status[:energy_forces] || status[:energy_forces!] ||
+            status[:energy_forces_virial] || status[:energy_forces!] || status[:energy_forces_virial!] )
+        # if this is true then optimized energy_forces exists
+        tmp = generate_calculate_energy_forces_from_energy_forces(calc_type)
+        push!(out, tmp)
+    end
+
+    if ! status[:calculate_energy] && ! status[:calculate_forces] && ! status[:calculate_virial] &&
+            ( status[:energy_forces_virial] || status[:energy_forces_virial!] )
+        # if this is true then optimized energy_forces_virial exists
+        tmp = generate_calculate_energy_forces_virial_from_energy_forces_virial(calc_type)
+        push!(out, tmp)
+    end
+
+   # println("$calc_type", "  " , out)
     eval( Expr(:block, out...) )
     return nothing
 end
