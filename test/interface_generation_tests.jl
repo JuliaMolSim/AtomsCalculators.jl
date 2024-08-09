@@ -24,7 +24,7 @@ using AtomsCalculators.Testing
         function AtomsCalculators.potential_energy(system, calculator::MyCalc1; kwargs...)
             return 0.0u"hartree"
         end 
-        AtomsCalculators.generate_missing_interface(MyCalc1)
+        AtomsCalculators.complete_interface(MyCalc1)
         test_potential_energy(hydrogen, MyCalc1())
     end
 
@@ -37,7 +37,7 @@ using AtomsCalculators.Testing
             kwargs...)
             return (; :energy => 0.0u"hartree", :state => nothing)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc2)
+        AtomsCalculators.complete_interface(MyCalc2)
         test_potential_energy(hydrogen, MyCalc2())
     end
 
@@ -46,7 +46,7 @@ using AtomsCalculators.Testing
         function AtomsCalculators.forces(system, calculator::MyCalc3; kwargs...)
             return AtomsCalculators.zero_forces(system, calculator)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc3)
+        AtomsCalculators.complete_interface(MyCalc3)
         test_forces(hydrogen, MyCalc3())
     end
 
@@ -60,7 +60,7 @@ using AtomsCalculators.Testing
             end
             return f
         end
-        AtomsCalculators.generate_missing_interface(MyCalc4)
+        AtomsCalculators.complete_interface(MyCalc4)
         test_forces(hydrogen, MyCalc4())
     end
 
@@ -73,7 +73,7 @@ using AtomsCalculators.Testing
                 kwargs...)
             return (; :forces => AtomsCalculators.zero_forces(system, calculator), :state => nothing)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc5)
+        AtomsCalculators.complete_interface(MyCalc5)
         test_forces(hydrogen, MyCalc5())
     end
 
@@ -83,7 +83,7 @@ using AtomsCalculators.Testing
         function AtomsCalculators.virial(system, calculator::MyCalc6; kwargs...)
             return zeros(3,3) * u"hartree"
         end 
-        AtomsCalculators.generate_missing_interface(MyCalc6)
+        AtomsCalculators.complete_interface(MyCalc6)
         test_virial(hydrogen, MyCalc6())
     end
 
@@ -96,7 +96,7 @@ using AtomsCalculators.Testing
                 kwargs...)
             return (; :virial => zeros(3,3) * u"hartree", :state => nothing)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc7)
+        AtomsCalculators.complete_interface(MyCalc7)
         test_virial(hydrogen, MyCalc7())
     end
 
@@ -106,7 +106,7 @@ using AtomsCalculators.Testing
             f = AtomsCalculators.zero_forces(system, calculator)
             return (energy=0.0u"hartree", forces=f)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc8)
+        AtomsCalculators.complete_interface(MyCalc8)
         test_energy_forces(hydrogen, MyCalc8())
     end
 
@@ -117,7 +117,7 @@ using AtomsCalculators.Testing
             v = zeros(3,3) * u"hartree"
             return (energy=0.0u"hartree", forces=f, virial=v)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc9)
+        AtomsCalculators.complete_interface(MyCalc9)
         test_energy_forces_virial(hydrogen, MyCalc9())
     end
 
@@ -131,7 +131,7 @@ using AtomsCalculators.Testing
             end
             return (energy=0.0u"hartree", forces=f)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc10)
+        AtomsCalculators.complete_interface(MyCalc10)
         test_potential_energy(hydrogen, MyCalc10())
     end
 
@@ -146,7 +146,7 @@ using AtomsCalculators.Testing
             v = zeros(3,3) * u"hartree"
             return (energy=0.0u"hartree", forces=f, virial=v)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc11)
+        AtomsCalculators.complete_interface(MyCalc11)
         test_energy_forces_virial(hydrogen, MyCalc11())
     end
 
@@ -164,7 +164,7 @@ using AtomsCalculators.Testing
             kwargs...)
             return (; :energy => 0.0u"hartree", :state => nothing)
         end
-        AtomsCalculators.generate_missing_interface(MyCalc12)
+        AtomsCalculators.complete_interface(MyCalc12)
         test_energy_forces_virial(hydrogen, MyCalc12())
     end
 
@@ -181,7 +181,7 @@ using AtomsCalculators.Testing
             kwargs...)
         return (; :forces => AtomsCalculators.zero_forces(system, calculator), :state => nothing)
     end
-        AtomsCalculators.generate_missing_interface(MyCalc13)
+        AtomsCalculators.complete_interface(MyCalc13)
         test_energy_forces(hydrogen, MyCalc13())
     end
 

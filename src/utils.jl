@@ -464,36 +464,47 @@ end
 
 ## New macro
 
-function implementation_status(t::Type; supertypes=true)
+
+"""
+    implementation_status(calc_type::Type; supertypes=true)
+
+Checks what parts of AtomsCalculators interface has been implemented by given calculator.
+
+Returns a `Dict{Symbol,bool}` where true means implemented part.
+
+Keyword `supertypes=true` can be given to accept supertype implementations.
+This currently applies only to combination call checks. 
+"""
+function implementation_status(calc_type::Type; supertypes=true)
     status = Dict{Symbol, Bool}()
-    status[:calculate_energy] = hasmethod(calculate, Tuple{Energy, AtomsBase.AbstractSystem, t, Nothing, Nothing}, (:random_kwarg21312, ))
-    status[:calculate_forces] = hasmethod(calculate, Tuple{Forces, AtomsBase.AbstractSystem, t, Nothing, Nothing}, (:random_kwarg21312, ))
-    status[:calculate_virial] = hasmethod(calculate, Tuple{Virial, AtomsBase.AbstractSystem, t, Nothing, Nothing}, (:random_kwarg21312, ))
+    status[:calculate_energy] = hasmethod(calculate, Tuple{Energy, AtomsBase.AbstractSystem, calc_type, Nothing, Nothing}, (:random_kwarg21312, ))
+    status[:calculate_forces] = hasmethod(calculate, Tuple{Forces, AtomsBase.AbstractSystem, calc_type, Nothing, Nothing}, (:random_kwarg21312, ))
+    status[:calculate_virial] = hasmethod(calculate, Tuple{Virial, AtomsBase.AbstractSystem, calc_type, Nothing, Nothing}, (:random_kwarg21312, ))
 
-    status[:potential_energy] = hasmethod(potential_energy, Tuple{AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
-    status[:forces] = hasmethod(forces, Tuple{AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
-    status[:virial] = hasmethod(virial, Tuple{AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
+    status[:potential_energy] = hasmethod(potential_energy, Tuple{AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
+    status[:forces] = hasmethod(forces, Tuple{AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
+    status[:virial] = hasmethod(virial, Tuple{AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
 
-    status[:forces!] = hasmethod(forces!, Tuple{AbstractVector, AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
+    status[:forces!] = hasmethod(forces!, Tuple{AbstractVector, AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
 
     # Following functions have default implementations, so we need to distinguish them out
-    tmp1 = hasmethod(energy_forces, Tuple{AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
-    tmp = methodswith(t, energy_forces; supertypes=supertypes)
+    tmp1 = hasmethod(energy_forces, Tuple{AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
+    tmp = methodswith(calc_type, energy_forces; supertypes=supertypes)
     tmp2 = length(tmp) > 0 ? true : false
     status[:energy_forces] = tmp1 && tmp2 ? true : false
 
-    tmp1 = hasmethod(energy_forces_virial, Tuple{AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
-    tmp = methodswith(t, energy_forces_virial; supertypes=supertypes)
+    tmp1 = hasmethod(energy_forces_virial, Tuple{AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
+    tmp = methodswith(calc_type, energy_forces_virial; supertypes=supertypes)
     tmp2 = length(tmp) > 0 ? true : false
     status[:energy_forces_virial] = tmp1 && tmp2 ? true : false
 
-    tmp1 = hasmethod(energy_forces!, Tuple{AbstractVector, AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
-    tmp = methodswith(t, energy_forces!; supertypes=supertypes)
+    tmp1 = hasmethod(energy_forces!, Tuple{AbstractVector, AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
+    tmp = methodswith(calc_type, energy_forces!; supertypes=supertypes)
     tmp2 = length(tmp) > 0 ? true : false
     status[:energy_forces!] = tmp1 && tmp2 ? true : false
 
-    tmp1 = hasmethod(energy_forces_virial!, Tuple{AbstractVector, AtomsBase.AbstractSystem, t}, (:random_kwarg21312, ))
-    tmp = methodswith(t, energy_forces_virial!; supertypes=supertypes)
+    tmp1 = hasmethod(energy_forces_virial!, Tuple{AbstractVector, AtomsBase.AbstractSystem, calc_type}, (:random_kwarg21312, ))
+    tmp = methodswith(calc_type, energy_forces_virial!; supertypes=supertypes)
     tmp2 = length(tmp) > 0 ? true : false
     status[:energy_forces_virial!] = tmp1 && tmp2 ? true : false
 
@@ -502,9 +513,28 @@ end
 
 
 
+"""
+    complete_interface(calc_type::Type)
 
-function generate_missing_interface(calc_type::Type)
+This will implement missing parts of AtomsCalculators interface for given calculator type.
+
+Function calls `AtomsCalculators.implementation_status` to see what has been implemented,
+and adds missing parts.
+
+There is no restrictions on where to call this. You can call it from different or module or package.
+But, the recommendation is that calculator implementer calls this after implementing
+something for AtomsCalculators interface.
+
+`AtomsCalculators` needs to be in scope for this function to work.
+"""
+function complete_interface(calc_type::Type)
     status = implementation_status(calc_type)
+
+    if all( x-> !x, values(status) )
+        @warn "$calc_type has no detected AtomsCalculators interface implemented"
+        return nothing
+    end
+
     out = []
 
     # Generate only energy calculations
@@ -644,7 +674,8 @@ function generate_missing_interface(calc_type::Type)
         push!(out, tmp)
     end
 
-   # println("$calc_type", "  " , out)
-    eval( Expr(:block, out...) )
+    if length(out) > 0
+        eval( Expr(:block, out...) )
+    end
     return nothing
 end
