@@ -7,6 +7,8 @@ using UnitfulAtomic
 using AtomsCalculators.Testing
 
 
+include("interface_generation_tests.jl")
+
 @testset "Parsing macro" begin
     expr_low_level_energy = quote
         function AtomsCalculators.calculate(::AtomsCalculators.Energy, system::AbstractSystem,
@@ -78,6 +80,9 @@ using AtomsCalculators.Testing
     @test AtomsCalculators.determine_type_calculation(
         Base.remove_linenums!(expr_high_level_virial).args[1])[:type] == :virial
 end
+
+
+
 
 @testset "High-level calculator interface" begin
     struct HighLevelCalculator end
