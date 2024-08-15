@@ -13,7 +13,7 @@ export test_energy_forces_virial
 
 
 """
-    test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, rtol=1e8, kwargs...)
+    test_forces(sys, calculator; force_eltype::AbstractVector=default_force_eltype, rtol=1e-8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
 forces calculation implementation works correctly.
@@ -28,7 +28,7 @@ for the output and checks that random keywords are accepted in input.
 
 The calculator is expected to work without kwargs.
 """
-function test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
+function test_forces(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...)
     @testset "Test forces for $(typeof(calculator))" begin
         parameters = nothing
         state = nothing
@@ -75,7 +75,7 @@ end
 
 
 """
-    test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
+    test_potential_energy(sys, calculator; rtol=1e-8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
 potential energy calculation implementation works correctly.
@@ -89,7 +89,7 @@ for the output and checks that random keywords are accepted in input.
 
 The calculator is expected to work without kwargs.
 """
-function test_potential_energy(sys, calculator; rtol=1e8, kwargs...)
+function test_potential_energy(sys, calculator; rtol=1e-8, kwargs...)
     @testset "Test potential_energy for $(typeof(calculator))" begin
         parameters = nothing
         state = nothing
@@ -124,7 +124,7 @@ for the output and checks that random keywords are accepted in input.
 
 The calculator is expected to work without kwargs.
 """
-function test_virial(sys, calculator; rtol=1e8, kwargs...)
+function test_virial(sys, calculator; rtol=1e-8, kwargs...)
     @testset "Test virial for $(typeof(calculator))" begin
         parameters = nothing
         state = nothing
@@ -150,7 +150,7 @@ end
 
 
 """
-    test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
+    test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
 calculator implements energy and forces interfaces correctly.
@@ -165,7 +165,7 @@ for the output and checks that random keywords are accepted in input.
 
 The calculator is expected to work without kwargs.
 """
-function test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
+function test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...)
     test_potential_energy(sys, calculator; rtol=rtol, kwargs...)
     test_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
     @testset "Test energy_forces for $(typeof(calculator))" begin
@@ -194,7 +194,7 @@ end
 
 
 """
-    test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
+    test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...)
 
 Test your calculator for AtomsCalculators interface. Passing test means that your
 calculator implements energy, forces and virial interfaces correctly.
@@ -209,7 +209,7 @@ for the output and checks that random keywords are accepted in input.
 
 The calculator is expected to work without kwargs.
 """
-function test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...)
+function test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...)
     test_energy_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
     test_virial(sys, calculator, kwargs...)
     @testset "Test energy_forces_virial for $(typeof(calculator))" begin
@@ -258,11 +258,11 @@ export test_energy_forces
 export test_energy_forces_virial
 
 
-@deprecate test_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
-@deprecate test_virial(sys, calculator; rtol=1e8, kwargs...) AtomsCalculators.Testing.test_virial(sys, calculator; rtol=rtol, kwargs...)
-@deprecate test_potential_energy(sys, calculator; rtol=1e8, kwargs...) AtomsCalculators.Testing.test_potential_energy(sys, calculator; rtol=rtol, kwargs...)
+@deprecate test_forces(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...) AtomsCalculators.Testing.test_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+@deprecate test_virial(sys, calculator; rtol=1e-8, kwargs...) AtomsCalculators.Testing.test_virial(sys, calculator; rtol=rtol, kwargs...)
+@deprecate test_potential_energy(sys, calculator; rtol=1e-8, kwargs...) AtomsCalculators.Testing.test_potential_energy(sys, calculator; rtol=rtol, kwargs...)
 
-@deprecate test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_energy_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
-@deprecate test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e8, kwargs...) AtomsCalculators.Testing.test_energy_forces_virial(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+@deprecate test_energy_forces(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...) AtomsCalculators.Testing.test_energy_forces(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
+@deprecate test_energy_forces_virial(sys, calculator; force_eltype=nothing, rtol=1e-8, kwargs...) AtomsCalculators.Testing.test_energy_forces_virial(sys, calculator; force_eltype=force_eltype, rtol=rtol, kwargs...)
 
 end # AtomsCalculatorsTesting
