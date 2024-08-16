@@ -243,6 +243,9 @@ function generate_nonallocating_forces(calc_type)
     return q
 end
 
+
+## New calls needed for complete_interface function but not by the macro
+
 function generate_forces_from_calculator(calc_type)
     q1 = generate_only_forces_from_calculator(calc_type)
     q2 = generate_nonallocating_forces(calc_type)
@@ -462,7 +465,7 @@ end
 
 
 
-## New macro
+## New functions to replace the macro
 
 
 """
