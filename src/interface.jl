@@ -123,12 +123,8 @@ set_parameters!(calc, ps) = calc
 `energy_forces(system, calculator; kwargs...) -> NamedTuple`
 """
 function energy_forces(system, calculator; kwargs...)
-    e = potential_energy(system, calculator; kwargs...)
-    f = forces(system, calculator; kwargs...)
-    return (;
-        :energy => e,
-        :forces => f
-    )
+    ef = calculate((Energy(), Forces()), system, calculator; kwargs...)
+    return ef
 end 
 
 """
@@ -148,11 +144,12 @@ end
 """
 function energy_forces_virial(system, calculator; kwargs...)
     ef = energy_forces(system, calculator; kwargs...)
-    v = virial(system, calculator; kwargs...)
-    return (;
-        :energy => ef[:energy],
-        :forces => ef[:forces],
-        :virial => v
+    st = haskey(ef, :state) ? ef[:state] : nothing
+    v = calculate( Virial(), system, calculator, nothing, st; kwargs...)
+    return (
+        energy = ef.energy,
+        forces = ef.forces,
+        virial = v.virial
     )
 end 
 

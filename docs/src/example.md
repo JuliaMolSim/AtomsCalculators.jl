@@ -1,4 +1,4 @@
-## Implementing the interface
+# The Old Style of Implementing the Interface
 
 **Note, this section is partly outdated!**
 
@@ -7,7 +7,7 @@ You can either implement both of the calls e.g. for energy
 `AtomsCalculators.potential_energy(system, calculator; kwargs...)` and
 `AtomsCalculators.calculate(AtomsCalculators.Energy(), system, calculator, ps=nothing, st=nothing; kwargs...)`
 
-### Example implementations
+## Example implementations
 
 Example `potential_energy` implementation
 
@@ -76,7 +76,7 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
 end
 ```
 
-### Implementing forces call
+## Implementing forces call
 
 Basic example
 
