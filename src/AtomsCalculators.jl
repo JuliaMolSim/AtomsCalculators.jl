@@ -1,7 +1,7 @@
 module AtomsCalculators
 
 
-using AtomsBase
+using AtomsBase: AbstractSystem
 using StaticArrays
 using Unitful
 
