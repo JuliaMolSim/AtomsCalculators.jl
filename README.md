@@ -1,4 +1,4 @@
-# AtomsCalculators.jl
+# AtomsCalculators
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaMolSim.github.io/AtomsCalculators.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaMolSim.github.io/AtomsCalculators.jl/dev/)
@@ -6,7 +6,7 @@
 
 ## Overview
 
-AtomsCalculators.jl provides a unified calculation interface for atomistic simulation engines within the JuliaMolSim ecosystem. It extends the core abstractions of AtomsBase.jl to standardize how energies, forces, stresses, and related quantities are computed and accessed.
+AtomsCalculators.jl provides a unified calculation interface for atomistic simulation engines within the JuliaMolSim ecosystem. It extends the core abstractions of AtomsBase.jl to standardize how energies, forces, virials, and related quantities are computed and accessed.
 
 The goal of this package is to enable interoperability between different simulation backends while maintaining a clean, extensible API for scientific workflows.
 
